@@ -276,7 +276,7 @@ export class Chart {
         this.context.fillRect(0, 0, this.width, this.height);
         this.mainDrawer && this.mainDrawer.update();
 
-        this.context.clearRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
+        this.context.fillRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
 
         this.auxiliaryDrawers[this.selectedAuxiliaryDrawer] &&
           this.auxiliaryDrawers[this.selectedAuxiliaryDrawer].update();
