@@ -31,14 +31,16 @@ export class Drawer {
   public maxValue = 0;
   public tradeTime: TradeTime;
   protected selectedExclusivePlugin = 0;
+  protected options: DrawerOptions;
   private _xAxisTickHeight = X_AXIS_HEIGHT;
   constructor(
     public chart: Chart,
-    protected options: DrawerOptions = {
+    options: DrawerOptions) {
+    this.options = Object.assign({}, {
       plugins: [],
       exclusivePlugins: [],
-      defaultExclusivePlugins: -1,
-    }) {
+      defaultExclusivePlugins: 0,
+    }, options);
     this.context = chart.context;
     this.selectedIndex = null;
     this.tradeTime = new TradeTime(chart.options.tradeTimes);
@@ -94,7 +96,10 @@ export class Drawer {
     this.selectedExclusivePlugin = (this.selectedExclusivePlugin + 1) % pluginsCount;
   }
   public useExclusivePlugin(index: number) {
-    if (index < -1 || index >= this.exclusivePlugins.length) {
+    if (this.exclusivePlugins.length === 0) {
+      this.selectedExclusivePlugin = -1;
+      return;
+    }  else if (index < -1 || index >= this.exclusivePlugins.length) {
       throw new Error('index out of bound');
     }
     this.selectedExclusivePlugin = index;

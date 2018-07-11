@@ -153,6 +153,17 @@ function createKLine() {
     },
     auxiliaryDrawers: [
       {
+        constructor: Drawer,
+        options: {
+          plugins: [
+            createYAxisPlugin(),
+          ],
+          exclusivePlugins: [
+            createMACDPlugin(),
+          ],
+        },
+      },
+      {
         constructor: CandleStickVolumeDrawer,
       },
       {
@@ -185,17 +196,6 @@ function createKLine() {
           ],
           exclusivePlugins: [
             createDMAPlugin(),
-          ],
-        },
-      },
-      {
-        constructor: Drawer,
-        options: {
-          plugins: [
-            createYAxisPlugin(),
-          ],
-          exclusivePlugins: [
-            createMACDPlugin(),
           ],
         },
       },
