@@ -14,7 +14,8 @@ import {
 
 export interface DrawerOptions {
     plugins: DrawerPluginConstructor[];
-    exclusivePlugins: ExclusiveDrawerPluginConstructor[];
+    exclusivePlugins?: ExclusiveDrawerPluginConstructor[];
+    defaultExclusivePlugins?: number;
 }
 
 export class Drawer {
@@ -36,6 +37,7 @@ export class Drawer {
     protected options: DrawerOptions = {
       plugins: [],
       exclusivePlugins: [],
+      defaultExclusivePlugins: -1,
     }) {
     this.context = chart.context;
     this.selectedIndex = null;
@@ -129,10 +131,11 @@ export class Drawer {
       .range([chartFrame.y + chartFrame.height, chartFrame.y + TITLE_MARGIN_BOTTOM * resolution]);
   }
   private installPlugin() {
+    this.selectedExclusivePlugin = this.options.defaultExclusivePlugins;
     this.options.plugins.forEach((Plugin) => {
       this.plugins.push(new Plugin(this));
     });
-    this.options.exclusivePlugins.forEach((Plugin) => {
+    this.options.exclusivePlugins && this.options.exclusivePlugins.forEach((Plugin) => {
       this.exclusivePlugins.push(new Plugin(this));
     });
   }

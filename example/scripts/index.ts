@@ -99,6 +99,7 @@ function createKLine() {
     mainDrawer: {
       constructor: CandleStickDrawer,
       options: {
+        defaultExclusivePlugins: 4,
         plugins: [
           createYAxisPlugin(),
         ],
