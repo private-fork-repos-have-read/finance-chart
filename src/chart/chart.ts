@@ -162,7 +162,7 @@ export class Chart {
   public width: number = 0;
   public height: number = 0;
   public mainDrawer: Drawer;
-  public auxiliaryDrawers: Drawer[] = [];
+  public auxiliaryDrawer: Drawer;
   public selectedAuxiliaryDrawer = 0;
   public destroyed = false;
   public movableRange: MovableRange<object>;
@@ -210,13 +210,11 @@ export class Chart {
       width: this.width,
       height: this.mainChartHeight,
     });
-    this.auxiliaryDrawers.forEach((drawer) => {
-      drawer.resize({
-        x: 0,
-        y: this.auxiliaryChartY,
-        width: this.width,
-        height: this.auxiliaryChartHeight,
-      });
+    this.auxiliaryDrawer.resize({
+      x: 0,
+      y: this.auxiliaryChartY,
+      width: this.width,
+      height: this.auxiliaryChartHeight,
     });
     this.resetXScale();
   }
@@ -228,7 +226,7 @@ export class Chart {
     this.movableRange.setData(data);
     if (clean) {
       this.destroyDrawer();
-      this.createDrawer();
+      this.createDrawers();
     }
     this._resetDrawerData();
   }
@@ -277,9 +275,7 @@ export class Chart {
         this.mainDrawer && this.mainDrawer.update();
 
         this.context.fillRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
-
-        this.auxiliaryDrawers[this.selectedAuxiliaryDrawer] &&
-          this.auxiliaryDrawers[this.selectedAuxiliaryDrawer].update();
+        this.auxiliaryDrawer && this.auxiliaryDrawer.update();
         this.requestAnimationFrameId = null;
         if (this.interactive & InteractiveState.ShowDetail) {
           this.drawFrontSight();
@@ -321,18 +317,23 @@ export class Chart {
   }
   @shouldRedraw()
   public nextAuxiliarDrawer() {
-    const auxiliaryDrawerCount = this.auxiliaryDrawers.length;
+    const auxiliaryDrawerCount = this.options.auxiliaryDrawers.length;
     if (auxiliaryDrawerCount === 0) {
       throw Error(`expect auxiliary drawer exist, but only 0 auxiliary drawer`);
     }
-    this.selectedAuxiliaryDrawer = (this.selectedAuxiliaryDrawer + 1) % auxiliaryDrawerCount;
+    this.useAuxiliarDrawer((this.selectedAuxiliaryDrawer + 1) % auxiliaryDrawerCount);
   }
   @shouldRedraw()
   public useAuxiliarDrawer(index: number) {
-    if (index < 0 || index >= this.auxiliaryDrawers.length) {
+    if (index < 0 || index >= this.options.auxiliaryDrawers.length) {
       throw new Error('index out of bound');
     }
     this.selectedAuxiliaryDrawer = index;
+    const auxiliaryConfig = this.options.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
+    this.auxiliaryDrawer = new auxiliaryConfig.constructor(
+      this, auxiliaryConfig.options,
+    );
+    this.resize();
   }
   get data() {
     return this.movableRange.visible();
@@ -359,35 +360,33 @@ export class Chart {
     window.addEventListener('resize', this.resize);
     this.rootElement.appendChild(this.canvas);
     this.context = this.canvas.getContext('2d');
-    this.createDrawer();
+    this.createDrawers();
     if (typeof this.options.detailProvider === 'function') {
       this.watchDetail();
     }
   }
-  private createDrawer() {
+  private createDrawers() {
     const { options } = this;
     if (options.mainDrawer) {
       this.mainDrawer = new options.mainDrawer.constructor(this, options.mainDrawer.options);
     }
-    options.auxiliaryDrawers.forEach((drawer) => {
-      this.auxiliaryDrawers.push(new drawer.constructor(this, drawer.options));
-    });
+    const auxiliaryConfig = this.options.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
+    if (auxiliaryConfig) {
+      this.auxiliaryDrawer = new auxiliaryConfig.constructor(this, auxiliaryConfig.options);
+    }
     this.movableRange.setVisibleLength(this.count());
     this.resize();
   }
   private destroyDrawer() {
     // clear referecne to Chart instance
     this.mainDrawer.chart = null;
-    this.auxiliaryDrawers.forEach((drawer) => {
-      drawer.chart = null;
-    });
+    this.auxiliaryDrawer = null;
     this.mainDrawer = null;
-    this.auxiliaryDrawers = [];
   }
   @shouldRedraw()
   private _resetDrawerData() {
     this.mainDrawer && this.mainDrawer.setRange(this.movableRange);
-    this.auxiliaryDrawers && this.auxiliaryDrawers.forEach((drawer) => drawer.setRange(this.movableRange));
+    this.auxiliaryDrawer && this.auxiliaryDrawer.setRange(this.movableRange);
   }
   @autoResetStyle()
   private drawFrontSight() {
@@ -415,8 +414,7 @@ export class Chart {
     if (y <= this.mainChartHeight) {
       yAxisDetail = this.mainDrawer.getYAxisDetail(y);
     } else {
-      const drawer = this.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
-      yAxisDetail = drawer.getYAxisDetail(y);
+      yAxisDetail = this.auxiliaryDrawer.getYAxisDetail(y);
     }
     this.forEachVisibleDrawer((drawer) => drawer.drawFrontSight());
     ctx.strokeStyle = this.theme.frontSight;
@@ -618,8 +616,7 @@ export class Chart {
   }
   private forEachVisibleDrawer(action: (drawer: Drawer) => void) {
     this.mainDrawer && action(this.mainDrawer);
-    const drawer = this.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
-    drawer && action(drawer);
+    this.auxiliaryDrawer && action(this.auxiliaryDrawer);
   }
   private clampSelectedIndex() {
     return clamp(

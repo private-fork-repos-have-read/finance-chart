@@ -184,7 +184,20 @@ function createKLine() {
             createRSIYAxisPlugin(),
           ],
           exclusivePlugins: [
-            createRSIPlugin(),
+            createRSIPlugin([
+              {
+                key: '1',
+                color: '#FF8E29',
+              },
+              {
+                key: '2',
+                color: '#ADE3F3',
+              },
+              {
+                key: '3',
+                color: '#EC6ED9',
+              },
+            ], 'rsi'),
           ],
         },
       },

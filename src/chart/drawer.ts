@@ -43,9 +43,9 @@ export class Drawer {
     }, options);
     this.context = chart.context;
     this.selectedIndex = null;
+    this.installPlugin();
     this.tradeTime = new TradeTime(chart.options.tradeTimes);
     this.setRange(chart.movableRange);
-    this.installPlugin();
   }
   public update() {
     // implement nothing
@@ -93,7 +93,7 @@ export class Drawer {
     if (pluginsCount === 0) {
       throw Error(`expect exclusive plugin exist, but only 0 plugin`);
     }
-    this.selectedExclusivePlugin = (this.selectedExclusivePlugin + 1) % pluginsCount;
+    this.useExclusivePlugin((this.selectedExclusivePlugin + 1) % pluginsCount);
   }
   public useExclusivePlugin(index: number) {
     if (this.exclusivePlugins.length === 0) {
@@ -103,6 +103,9 @@ export class Drawer {
       throw new Error('index out of bound');
     }
     this.selectedExclusivePlugin = index;
+    if (this.range) {
+      this.exclusivePlugins[this.selectedExclusivePlugin].onSetRange();
+    }
   }
   public topValue = () => {
     return this.maxValue * (1 + Math.sign(this.maxValue) * 0.01);
