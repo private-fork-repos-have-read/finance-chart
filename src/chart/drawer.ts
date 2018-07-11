@@ -94,7 +94,7 @@ export class Drawer {
     this.selectedExclusivePlugin = (this.selectedExclusivePlugin + 1) % pluginsCount;
   }
   public useExclusivePlugin(index: number) {
-    if (index < 0 || index >= this.exclusivePlugins.length) {
+    if (index < -1 || index >= this.exclusivePlugins.length) {
       throw new Error('index out of bound');
     }
     this.selectedExclusivePlugin = index;
@@ -131,13 +131,13 @@ export class Drawer {
       .range([chartFrame.y + chartFrame.height, chartFrame.y + TITLE_MARGIN_BOTTOM * resolution]);
   }
   private installPlugin() {
-    this.selectedExclusivePlugin = this.options.defaultExclusivePlugins;
     this.options.plugins.forEach((Plugin) => {
       this.plugins.push(new Plugin(this));
     });
     this.options.exclusivePlugins && this.options.exclusivePlugins.forEach((Plugin) => {
       this.exclusivePlugins.push(new Plugin(this));
     });
+    this.useExclusivePlugin(this.options.defaultExclusivePlugins);
   }
   private pluginCall<
     T extends keyof DrawerPlugin,
