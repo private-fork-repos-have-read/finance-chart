@@ -26,7 +26,7 @@ export function createRSIPlugin(
       detailMapper(key, datum, i) {
         return {
           x: i * 80 + 50,
-          label: `RSI: ${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`,
+          label: `RSI${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`,
         };
       },
     },

@@ -176,6 +176,7 @@ export class Chart {
   private lastMouseX: number;
   private lastMouseY: number;
   private hasMoved = 0;
+  private isDirty = false;
 
   constructor(options: ChartOptions) {
     this.onMouseDown = this.onMouseDown.bind(this);
@@ -228,7 +229,7 @@ export class Chart {
       this.destroyDrawer();
       this.createDrawers();
     }
-    this._resetDrawerData();
+    this.isDirty = true;
   }
   public drag(distance: number) {
     const dist = distance * this.options.resolution;
@@ -242,10 +243,11 @@ export class Chart {
       this.move(-count);
     }
   }
+  @shouldRedraw()
   public move(step: number) {
     const moved = this.movableRange.move(step);
     if (moved) {
-      this._resetDrawerData();
+      this.isDirty = true;
     } else if (step < 0) {
       // console.log(moved)
     }
@@ -266,24 +268,33 @@ export class Chart {
   public drawAtEndOfFrame() {
     if (!this.requestAnimationFrameId) {
       this.requestAnimationFrameId = requestAnimationFrame(() => {
-        this.context.clearRect(0, 0, this.width, this.height);
-        // if (process.env.NODE_ENV === 'development') {
-        //   console.time('rendering cost');
-        // }
-        this.context.fillStyle = this.theme.background;
-        this.context.fillRect(0, 0, this.width, this.height);
-        this.mainDrawer && this.mainDrawer.update();
+        try {
+          if (this.isDirty) {
+            this.mainDrawer && this.mainDrawer.setRange(this.movableRange);
+            this.auxiliaryDrawer && this.auxiliaryDrawer.setRange(this.movableRange);
+            this.isDirty = false;
+          }
+          this.context.clearRect(0, 0, this.width, this.height);
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.time('rendering cost');
+          // }
+          this.context.fillStyle = this.theme.background;
+          this.context.fillRect(0, 0, this.width, this.height);
+          this.mainDrawer && this.mainDrawer.update();
 
-        this.context.fillRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
-        this.auxiliaryDrawer && this.auxiliaryDrawer.update();
-        this.requestAnimationFrameId = null;
-        if (this.interactive & InteractiveState.ShowDetail) {
-          this.drawFrontSight();
+          this.context.fillRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
+          this.auxiliaryDrawer && this.auxiliaryDrawer.update();
+          this.requestAnimationFrameId = null;
+          if (this.interactive & InteractiveState.ShowDetail) {
+            this.drawFrontSight();
+          }
+
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.timeEnd('rendering cost');
+          // }
+        } catch (e) {
+          console.error(e);
         }
-
-        // if (process.env.NODE_ENV === 'development') {
-        //   console.timeEnd('rendering cost');
-        // }
       });
     }
   }
@@ -382,11 +393,6 @@ export class Chart {
     this.mainDrawer.chart = null;
     this.auxiliaryDrawer = null;
     this.mainDrawer = null;
-  }
-  @shouldRedraw()
-  private _resetDrawerData() {
-    this.mainDrawer && this.mainDrawer.setRange(this.movableRange);
-    this.auxiliaryDrawer && this.auxiliaryDrawer.setRange(this.movableRange);
   }
   @autoResetStyle()
   private drawFrontSight() {
@@ -513,14 +519,14 @@ export class Chart {
   private onTouchMove(e: TouchEvent) {
     const { clientX, clientY } = e.touches[0];
     if (this.interactive & InteractiveState.ShowDetail) {
-      e.preventDefault();
+      e.cancelable && e.preventDefault();
       const rect = (e.target as HTMLElement).getBoundingClientRect();
       this.showDetail(
         clientX - rect.left,
         clientY - rect.top,
       );
     } else if (this.interactive & InteractiveState.Dragging) {
-      e.preventDefault();
+      e.cancelable && e.preventDefault();
       this.onDrag(clientX);
     } else if (this.interactive === InteractiveState.None) {
       this.clearTouchTimeout();
