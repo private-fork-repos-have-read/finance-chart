@@ -104,7 +104,8 @@ export class Drawer {
     }
     this.selectedExclusivePlugin = index;
     if (this.range) {
-      this.exclusivePlugins[this.selectedExclusivePlugin].onSetRange();
+      const plugin = this.exclusivePlugins[this.selectedExclusivePlugin];
+      plugin && plugin.onSetRange();
     }
   }
   public topValue = () => {

@@ -3,3 +3,10 @@ coverage/
 yarn-error.log
 example-dist/
 *.tar.gz
+dev/
+src/
+doc/
+coverage/
+__mocks__/
+__tests__/
+example/
