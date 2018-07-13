@@ -12,7 +12,6 @@ export function createSARPlugin(color = '#FF8E29', title = 'SAR'): ExclusiveDraw
         this.pluginHost.context,
         title, [
           {
-            x: 80,
             label: 'BB: 0.00',
             color,
           },

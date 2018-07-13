@@ -28,7 +28,6 @@ export function createMACDPlugin(
       super(pluginHost);
       const theme = pluginHost.chart.theme;
       const labels = dataDescription.map(({key, color}, i) => ({
-        x: i * 80 + 50,
         label: `${key}: 0.00`,
         color,
       }));

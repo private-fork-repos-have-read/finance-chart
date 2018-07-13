@@ -66,12 +66,10 @@ export class TimeShareDrawer extends Drawer {
       this.context,
       null, [
         {
-          x: 5 * this.chart.options.resolution,
           label: '分时走势',
           color: this.theme.timeShare.price,
         },
         {
-          x: 50 + 5 * this.chart.options.resolution,
           label: '均线',
           color: this.theme.timeShare.avg,
         },

@@ -61,7 +61,6 @@ export class VolumeDrawer extends Drawer {
       this.context,
       '成交量', [
         {
-          x: 60,
           label: volumeLabel(0),
           color: this.theme.volume.volumeText,
         },

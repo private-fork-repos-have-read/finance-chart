@@ -24,10 +24,7 @@ export function createBOLLPlugin(
       title: 'BOLL(20,2)',
       lineData,
       detailMapper(key, datum, i) {
-        return {
-          x: i * 80 + 80,
-          label: `${key.toUpperCase()}: ${datum === 0 ? 0 : datum.toFixed(2)}`,
-        };
+        return `${key.toUpperCase()}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
       },
     },
   );

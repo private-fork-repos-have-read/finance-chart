@@ -8,10 +8,7 @@ export function createSMAPlugin(lineData: DatumColorMap[]): ExclusiveDrawerPlugi
       title: 'SMA',
       lineData,
       detailMapper(key, datum, i) {
-        return {
-          x: i * 80 + 80,
-          label: `SMA ${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`,
-        };
+        return `SMA ${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
       },
     },
   );

@@ -19,7 +19,7 @@ export function createLinePlugin(
     dataObjectKey: string,
     title: string;
     lineData: DatumColorMap[],
-    detailMapper: (key: string, datum: number, index: number) => { x: number; label: string; }
+    detailMapper: (key: string, datum: number, index: number) => string
   },
 ): ExclusiveDrawerPluginConstructor {
   return class LineIndicatorPlugin extends ExclusiveDrawerPlugin {
@@ -31,7 +31,7 @@ export function createLinePlugin(
         this.pluginHost.context,
         config.title,
         config.lineData.map(({key, color}, i) => ({
-          ...config.detailMapper(key, 0, i),
+          label: config.detailMapper(key, 0, i),
           color,
         })),
         theme.titleBackground,
@@ -65,9 +65,8 @@ export function createLinePlugin(
       const d = data[i];
       if (data.length > 0) {
         config.lineData.forEach(({ key }, i) => {
-          // if (key === 'k') debugger;
           const n = (d as any)[config.dataObjectKey][key] || 0;
-          this.titleDrawer.setLabel(i, config.detailMapper(key, n, i).label);
+          this.titleDrawer.setLabel(i, config.detailMapper(key, n, i));
         });
         ctx.clearRect(0, frame.y, frame.width, this.pluginHost.titleHeight);
         this.titleDrawer.draw({
