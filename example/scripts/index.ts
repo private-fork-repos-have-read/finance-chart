@@ -151,6 +151,7 @@ function createKLine() {
         ],
       },
     },
+    selectedAuxiliaryDrawer: 2,
     auxiliaryDrawers: [
       {
         constructor: Drawer,

@@ -44,6 +44,7 @@ export interface ChartOptions {
   resolution?: number;
   count?: number;
   mainRatio?: number;
+  selectedAuxiliaryDrawer?: number;
   auxiliaryDrawers?: DrawerConfig[];
   detailProvider?:
     (selectedIndex: number, data: any[]) => {
@@ -97,6 +98,7 @@ function createOptions(options: ChartOptions) {
     count: 240,
     mainRatio: 0.6,
     mainDrawer: null,
+    selectedAuxiliaryDrawer: 0,
     auxiliaryDrawers: [],
   }, options);
 }
@@ -189,6 +191,7 @@ export class Chart {
     this.onTouchEnd = this.onTouchEnd.bind(this);
 
     this.options = createOptions(options);
+    this.selectedAuxiliaryDrawer = this.options.selectedAuxiliaryDrawer;
     this.theme = this.options.theme;
     this.lastPrice = this.options.lastPrice;
     this.resize = this.resize.bind(this);
