@@ -1,8 +1,4 @@
-export {
-  Chart,
-  ChartBlackTheme,
-  ChartWhiteTheme,
-} from './chart/chart';
+export * from './chart/chart';
 
 /* export data structure */
 export * from './chart/data-structure';

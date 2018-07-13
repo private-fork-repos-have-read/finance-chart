@@ -109,11 +109,11 @@ export class Drawer {
     }
   }
   public topValue = () => {
-    const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 12);
+    const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
     return this.maxValue + extra;
   }
   public bottomValue = () => {
-    const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 12);
+    const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
     return this.minValue - extra;
   }
   protected predraw() {

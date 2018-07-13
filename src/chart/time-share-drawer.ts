@@ -1,5 +1,6 @@
 import { max, min } from 'd3-array';
 import { area } from 'd3-shape';
+import clamp from 'lodash.clamp';
 import uniq from 'lodash.uniq';
 import { formateDate } from '../algorithm/date';
 import { divide } from '../algorithm/divide';
@@ -42,7 +43,8 @@ export class TimeShareDrawer extends Drawer {
   public topValue = ((lastTopValue = Number.MIN_VALUE) =>
     () => {
       if (this.maxValue > lastTopValue) {
-        lastTopValue = this.maxValue * (1.01);
+        const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
+        lastTopValue = this.maxValue + extra;
       }
       return lastTopValue;
     }
@@ -50,7 +52,8 @@ export class TimeShareDrawer extends Drawer {
   public bottomValue = ((lastBottomValue = Number.MAX_VALUE) =>
     () => {
       if (this.minValue < lastBottomValue) {
-        lastBottomValue = this.minValue * (0.99);
+        const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
+        lastBottomValue = this.minValue - extra;
       }
       return lastBottomValue;
     }
