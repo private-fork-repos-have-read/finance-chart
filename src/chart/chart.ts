@@ -222,6 +222,7 @@ export class Chart {
     });
     this.resetXScale();
   }
+  @shouldRedraw()
   public setData(data: any[], clean = false) {
     if (this.destroyed) {
       throw new Error('Chart has been destroyed, method#setData didn\'t allow to be called');
