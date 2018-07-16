@@ -181,6 +181,7 @@ export class Chart {
   private isDirty = false;
 
   constructor(options: ChartOptions) {
+    this.onWindownResize = this.onWindownResize.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseEnter = this.onMouseEnter.bind(this);
@@ -198,9 +199,9 @@ export class Chart {
     this.movableRange = new MovableRange(this.options.data, 0);
     this.create();
     this.setData(this.options.data);
+    this._draw();
   }
-  @shouldRedraw()
-  public resize() {
+  public resize(redraw = true) {
     const { options } = this;
     this.width = this.rootElement.clientWidth * options.resolution;
     this.height = this.rootElement.clientHeight * options.resolution;
@@ -208,19 +209,13 @@ export class Chart {
     this.canvas.style.height = '100%';
     this.canvas.width = this.width;
     this.canvas.height = this.height;
-    this.mainDrawer && this.mainDrawer.resize({
-      x: 0,
-      y: this.mainChartY,
-      width: this.width,
-      height: this.mainChartHeight,
-    });
-    this.auxiliaryDrawer.resize({
-      x: 0,
-      y: this.auxiliaryChartY,
-      width: this.width,
-      height: this.auxiliaryChartHeight,
-    });
+    this._resizeMainDrawer();
+    this._resizeAuxiliaryDrawer();
     this.resetXScale();
+    redraw && this._draw();
+  }
+  public onWindownResize() {
+    this.resize();
   }
   @shouldRedraw()
   public setData(data: any[], clean = false) {
@@ -252,8 +247,6 @@ export class Chart {
     const moved = this.movableRange.move(step);
     if (moved) {
       this.isDirty = true;
-    } else if (step < 0) {
-      // console.log(moved)
     }
   }
   @shouldRedraw()
@@ -272,39 +265,13 @@ export class Chart {
   public drawAtEndOfFrame() {
     if (!this.requestAnimationFrameId) {
       this.requestAnimationFrameId = requestAnimationFrame(() => {
-        try {
-          if (this.isDirty) {
-            this.mainDrawer && this.mainDrawer.setRange(this.movableRange);
-            this.auxiliaryDrawer && this.auxiliaryDrawer.setRange(this.movableRange);
-            this.isDirty = false;
-          }
-          this.context.clearRect(0, 0, this.width, this.height);
-          // if (process.env.NODE_ENV === 'development') {
-          //   console.time('rendering cost');
-          // }
-          this.context.fillStyle = this.theme.background;
-          this.context.fillRect(0, 0, this.width, this.height);
-          this.mainDrawer && this.mainDrawer.update();
-
-          this.context.fillRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
-          this.auxiliaryDrawer && this.auxiliaryDrawer.update();
-          this.requestAnimationFrameId = null;
-          if (this.interactive & InteractiveState.ShowDetail) {
-            this.drawFrontSight();
-          }
-
-          // if (process.env.NODE_ENV === 'development') {
-          //   console.timeEnd('rendering cost');
-          // }
-        } catch (e) {
-          console.error(e);
-        }
+        this._draw();
       });
     }
   }
   public destroy() {
     this.destroyed = true;
-    window.removeEventListener('resize', this.resize);
+    window.removeEventListener('resize', this.onWindownResize);
     this.canvas.removeEventListener('contextmenu', this.onContextMenu);
     this.canvas.removeEventListener('mouseenter', this.onMouseEnter);
     this.canvas.removeEventListener('mousemove', this.onMouseEnter);
@@ -348,7 +315,7 @@ export class Chart {
     this.auxiliaryDrawer = new auxiliaryConfig.constructor(
       this, auxiliaryConfig.options,
     );
-    this.resize();
+    this._resizeAuxiliaryDrawer();
   }
   get data() {
     return this.movableRange.visible();
@@ -372,7 +339,7 @@ export class Chart {
         : document.querySelector(options.selector as string);
     this.rootElement.className = 'finance-chart';
     this.canvas = document.createElement('canvas');
-    window.addEventListener('resize', this.resize);
+    window.addEventListener('resize', this.onWindownResize);
     this.rootElement.appendChild(this.canvas);
     this.context = this.canvas.getContext('2d');
     this.createDrawers();
@@ -381,16 +348,22 @@ export class Chart {
     }
   }
   private createDrawers() {
+    this._createMainDrawer();
+    this._createAuxiliaryDrawer();
+    this.movableRange.setVisibleLength(this.count());
+    this.resize(false);
+  }
+  private _createMainDrawer() {
     const { options } = this;
     if (options.mainDrawer) {
       this.mainDrawer = new options.mainDrawer.constructor(this, options.mainDrawer.options);
     }
+  }
+  private _createAuxiliaryDrawer() {
     const auxiliaryConfig = this.options.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
     if (auxiliaryConfig) {
       this.auxiliaryDrawer = new auxiliaryConfig.constructor(this, auxiliaryConfig.options);
     }
-    this.movableRange.setVisibleLength(this.count());
-    this.resize();
   }
   private destroyDrawer() {
     // clear referecne to Chart instance
@@ -669,5 +642,50 @@ export class Chart {
     this.interactive &= ~InteractiveState.ShowDetail;
     this.detailElement.style.display = 'none';
     this.detailAt(null);
+  }
+  private _draw() {
+    try {
+      if (this.isDirty) {
+        this.mainDrawer && this.mainDrawer.setRange(this.movableRange);
+        this.auxiliaryDrawer && this.auxiliaryDrawer.setRange(this.movableRange);
+        this.isDirty = false;
+      }
+      this.context.clearRect(0, 0, this.width, this.height);
+      // if (process.env.NODE_ENV === 'development') {
+      //   console.time('rendering cost');
+      // }
+      this.context.fillStyle = this.theme.background;
+      this.context.fillRect(0, 0, this.width, this.height);
+      this.mainDrawer && this.mainDrawer.update();
+
+      this.context.fillRect(0, this.auxiliaryChartY, this.width, this.auxiliaryChartHeight);
+      this.auxiliaryDrawer && this.auxiliaryDrawer.update();
+      this.requestAnimationFrameId = null;
+      if (this.interactive & InteractiveState.ShowDetail) {
+        this.drawFrontSight();
+      }
+
+      // if (process.env.NODE_ENV === 'development') {
+      //   console.timeEnd('rendering cost');
+      // }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  private _resizeMainDrawer() {
+    this.mainDrawer && this.mainDrawer.resize({
+      x: 0,
+      y: this.mainChartY,
+      width: this.width,
+      height: this.mainChartHeight,
+    });
+  }
+  private _resizeAuxiliaryDrawer() {
+    this.auxiliaryDrawer.resize({
+      x: 0,
+      y: this.auxiliaryChartY,
+      width: this.width,
+      height: this.auxiliaryChartHeight,
+    });
   }
 }
