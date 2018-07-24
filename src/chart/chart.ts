@@ -257,7 +257,9 @@ export class Chart {
         this.isFetchingMoreData = true;
         promise.then((data: any[]) => {
           this.isFetchingMoreData = false;
-          data && data.length > 0 && this.setData(data.concat(this.movableRange.data));
+          data && data.length > 0 && this.setData(
+            step < 0 ? data.concat(this.movableRange.data) : this.movableRange.data.concat(data),
+          );
         });
       }
     }
