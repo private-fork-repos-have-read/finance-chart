@@ -21,6 +21,7 @@ import {
   VolumeDrawer,
 } from '../../src/index';
 import './index.scss';
+import { fetchKline } from './mock-api';
 import MOCK_KLINE from './mock-kline';
 import MOCK_TIME_SHARE from './mock-time-share';
 
@@ -90,11 +91,11 @@ function createTimeShare() {
   autoUpdateTimeShare();
 }
 function createKLine() {
-  (window as any).klineChart = new Chart({
+  const klineChart = (window as any).klineChart = new Chart({
     selector: '#candle-stick',
-    count: 50,
+    count: 40,
     lastPrice: 50.49999809265137,
-    data: MOCK_KLINE,
+    data: [],
     tradeTimes: [],
     mainDrawer: {
       constructor: CandleStickDrawer,
@@ -241,7 +242,19 @@ function createKLine() {
         ],
       };
     },
+    onMoreData(step) {
+      if (step < 0) {
+        return fetchKline(
+          this.movableRange.data.length,
+        );
+      }
+    },
   });
+
+  fetchKline()
+    .then((data) => {
+      klineChart.setData(data);
+    });
 }
 createTimeShare();
 createKLine();

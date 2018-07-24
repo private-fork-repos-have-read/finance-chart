@@ -51,6 +51,8 @@ export interface ChartOptions {
       title: string;
       tables: ChartDetail[]
     };
+  onMoreData?:
+    (this: Chart, tep: number) => void | Promise<any[]>;
 }
 
 export interface ChartDetail {
@@ -100,6 +102,7 @@ function createOptions(options: ChartOptions) {
     mainDrawer: null,
     selectedAuxiliaryDrawer: 0,
     auxiliaryDrawers: [],
+    onMoreData: () => { /* noop */ },
   }, options);
 }
 
@@ -179,6 +182,7 @@ export class Chart {
   private lastMouseY: number;
   private hasMoved = 0;
   private isDirty = false;
+  private isFetchingMoreData = false;
 
   constructor(options: ChartOptions) {
     this.onWindownResize = this.onWindownResize.bind(this);
@@ -247,6 +251,15 @@ export class Chart {
     const moved = this.movableRange.move(step);
     if (moved) {
       this.isDirty = true;
+    } else if (!this.isFetchingMoreData) {
+      const promise = this.options.onMoreData.call(this, step);
+      if (promise && typeof promise.then === 'function') {
+        this.isFetchingMoreData = true;
+        promise.then((data: any[]) => {
+          this.isFetchingMoreData = false;
+          data && data.length > 0 && this.setData(data.concat(this.movableRange.data));
+        });
+      }
     }
   }
   @shouldRedraw()

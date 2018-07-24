@@ -14,7 +14,7 @@ module.exports = (env) => {
       mode: 'development',
       context: path.resolve(__dirname, '..'),
       entry: {
-        index: './example/scripts/index'
+        index: './example/src/index'
       },
       output: {
         path: path.resolve(__dirname, '../example-dist/'),
