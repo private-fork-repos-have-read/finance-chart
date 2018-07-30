@@ -5,7 +5,7 @@ export * from './chart/data-structure';
 
 /* export all main drawer */
 export * from './chart/drawer';
-export * from './chart/time-share-drawer';
+export * from './chart/time-series-drawer';
 export * from './chart/candle-stick-drawer';
 
 /* export all auxiliary drawer */

@@ -16,21 +16,20 @@ import {
   createSMAPlugin,
   createYAxisPlugin,
   Drawer,
-  TimeShareDrawer,
-  TimeShareVolumeDrawer,
+  TimeSeriesDrawer,
+  TimeSeriesVolumeDrawer,
   VolumeDrawer,
 } from '../../src/index';
 import './index.scss';
 import { fetchKline } from './mock-api';
-import MOCK_KLINE from './mock-kline';
-import MOCK_TIME_SHARE from './mock-time-share';
+import MOCK_TIME_SHARE from './mock-time-series';
 
 VolumeDrawer.proportion = 100;
 VolumeDrawer.unit = '手';
 
-function createTimeShare() {
-  const timeShareChart = new Chart({
-    selector: '#time-share',
+function createTimeSeries() {
+  const TimeSeriesChart = new Chart({
+    selector: '#time-series',
     resolution: (window.devicePixelRatio || 1),
     count: 0,
     lastPrice: 15.2,
@@ -46,11 +45,11 @@ function createTimeShare() {
       },
     ],
     mainDrawer: {
-      constructor: TimeShareDrawer,
+      constructor: TimeSeriesDrawer,
     },
     auxiliaryDrawers: [
       {
-        constructor: TimeShareVolumeDrawer,
+        constructor: TimeSeriesVolumeDrawer,
       },
     ],
     detailProvider: (i, data) => {
@@ -73,9 +72,9 @@ function createTimeShare() {
       };
     },
   });
-  function autoUpdateTimeShare() {
+  function autoUpdateTimeSeries() {
     if (MOCK_TIME_SHARE.length < 240 - 1) {
-      setTimeout(autoUpdateTimeShare, 500);
+      setTimeout(autoUpdateTimeSeries, 500);
     }
     const last = MOCK_TIME_SHARE[MOCK_TIME_SHARE.length - 1];
     const next = {
@@ -86,9 +85,9 @@ function createTimeShare() {
       holdAmount: Math.round(last.holdAmount * (Math.random() * 0.6 - 0.3 + 1)),
     };
     MOCK_TIME_SHARE.push(next);
-    timeShareChart.setData(MOCK_TIME_SHARE);
+    TimeSeriesChart.setData(MOCK_TIME_SHARE);
   }
-  autoUpdateTimeShare();
+  autoUpdateTimeSeries();
 }
 function createKLine() {
   const klineChart = (window as any).klineChart = new Chart({
@@ -256,5 +255,5 @@ function createKLine() {
       klineChart.setData(data);
     });
 }
-createTimeShare();
+createTimeSeries();
 createKLine();

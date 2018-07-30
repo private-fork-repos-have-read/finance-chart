@@ -10,7 +10,7 @@ export interface CandleStickData extends VolumeData {
   low: number;
 }
 
-export interface TimeShareData extends VolumeData {
+export interface TimeSeriesData extends VolumeData {
   price: number;
   avg: number;
   time: number;

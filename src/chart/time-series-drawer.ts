@@ -5,21 +5,20 @@ import uniq from 'lodash.uniq';
 import { formateDate } from '../algorithm/date';
 import { divide } from '../algorithm/divide';
 import { MovableRange } from '../algorithm/range';
-import { Rect } from '../graphic/primitive';
 import { drawLine, drawXAxis, drawYAxis } from '../paint-utils/index';
 import { autoResetStyle, Chart, ChartTheme, YAxisDetail } from './chart';
 import { ChartTitle } from './chart-title';
-import { TimeShareData } from './data-structure';
+import { TimeSeriesData } from './data-structure';
 import { Drawer, DrawerOptions } from './drawer';
 
-export interface TimeShareTheme extends ChartTheme {
-  timeShare: {
+export interface TimeSeriesTheme extends ChartTheme {
+  TimeSeries: {
     price: string;
     linearGradient: string[];
     avg: string;
   };
 }
-export const TimeShareWhiteTheme = {
+export const TimeSeriesWhiteTheme = {
   price: '#4B99FB',
   linearGradient: [
     'rgba(75, 153, 251, 0.4)',
@@ -27,7 +26,7 @@ export const TimeShareWhiteTheme = {
   ],
   avg: '#F89D37',
 };
-export const TimeShareBlackTheme = {
+export const TimeSeriesBlackTheme = {
   price: '#4B99FB',
   linearGradient: [
     'rgba(75, 153, 251, 0.4)',
@@ -36,10 +35,10 @@ export const TimeShareBlackTheme = {
   avg: '#F89D37',
 };
 
-export class TimeShareDrawer extends Drawer {
-  public theme: TimeShareTheme;
+export class TimeSeriesDrawer extends Drawer {
+  public theme: TimeSeriesTheme;
   public titleDrawer: ChartTitle;
-  public range: MovableRange<TimeShareData>;
+  public range: MovableRange<TimeSeriesData>;
   public topValue = ((lastTopValue = Number.MIN_VALUE) =>
     () => {
       if (this.maxValue > lastTopValue) {
@@ -61,7 +60,7 @@ export class TimeShareDrawer extends Drawer {
   constructor(chart: Chart, options: DrawerOptions) {
     super(chart, options);
     this.theme = Object.assign({
-      timeShare: TimeShareBlackTheme,
+      TimeSeries: TimeSeriesBlackTheme,
     }, this.chart.theme);
     this.xTickFormatter = this.xTickFormatter.bind(this);
     this.context = chart.context;
@@ -70,11 +69,11 @@ export class TimeShareDrawer extends Drawer {
       null, [
         {
           label: '分时走势',
-          color: this.theme.timeShare.price,
+          color: this.theme.TimeSeries.price,
         },
         {
           label: '均线',
-          color: this.theme.timeShare.avg,
+          color: this.theme.TimeSeries.avg,
         },
       ],
       this.theme.titleBackground,
@@ -85,7 +84,7 @@ export class TimeShareDrawer extends Drawer {
   public count() {
     return this.tradeTime.totalMinutes();
   }
-  public setRange(range: MovableRange<TimeShareData>) {
+  public setRange(range: MovableRange<TimeSeriesData>) {
     const data = range.data;
     if (data.length > 0) {
       const merge = [...data.map((d) => d.price), ...data.map((d) => d.avg)];
@@ -107,11 +106,11 @@ export class TimeShareDrawer extends Drawer {
     const size = 5 * this.chart.options.resolution;
     ctx.beginPath();
     ctx.arc(x, yScale(data[selectedIndex].price), size, 0, Math.PI * 2);
-    ctx.fillStyle = this.theme.timeShare.price;
+    ctx.fillStyle = this.theme.TimeSeries.price;
     ctx.fill();
     ctx.beginPath();
     ctx.arc(x, yScale(data[selectedIndex].avg), size, 0, Math.PI * 2);
-    ctx.fillStyle = this.theme.timeShare.avg;
+    ctx.fillStyle = this.theme.TimeSeries.avg;
     ctx.fill();
   }
   public getYAxisDetail(y: number): YAxisDetail {
@@ -132,7 +131,7 @@ export class TimeShareDrawer extends Drawer {
       ...frame,
       height: this.titleHeight,
     });
-    this.drawTimeShare();
+    this.drawTimeSeries();
   }
   protected xTickFormatter(value: number, i?: number) {
     const d = new Date();
@@ -191,11 +190,11 @@ export class TimeShareDrawer extends Drawer {
     this.drawYAxis();
   }
   @autoResetStyle()
-  protected drawTimeShare() {
+  protected drawTimeSeries() {
     const { frame } = this;
     const { xScale } = this.chart;
     const { context: ctx, yScale, range } = this;
-    const drawArea = area<TimeShareData>()
+    const drawArea = area<TimeSeriesData>()
       .x((d, i) => xScale(i))
       .y0((d) => yScale(d.price))
       .y1(frame.height - this.xAxisTickHeight)
@@ -203,15 +202,15 @@ export class TimeShareDrawer extends Drawer {
     ctx.beginPath();
     drawArea(range.visible());
     const linearGradient = ctx.createLinearGradient(0, 0, 0, frame.height);
-    this.theme.timeShare.linearGradient.forEach((color, i) =>
+    this.theme.TimeSeries.linearGradient.forEach((color, i) =>
       linearGradient.addColorStop(i, color));
     ctx.fillStyle = linearGradient;
     ctx.fill();
-    this.drawLine('price', this.theme.timeShare.price);
-    this.drawLine('avg', this.theme.timeShare.avg);
+    this.drawLine('price', this.theme.TimeSeries.price);
+    this.drawLine('avg', this.theme.TimeSeries.avg);
   }
   @autoResetStyle()
-  protected drawLine(key: keyof TimeShareData, color = 'black') {
+  protected drawLine(key: keyof TimeSeriesData, color = 'black') {
     const { yScale, context: ctx,  range } = this;
     const { xScale } = this.chart;
     drawLine(

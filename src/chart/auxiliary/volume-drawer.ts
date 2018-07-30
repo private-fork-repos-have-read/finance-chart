@@ -5,11 +5,9 @@ import { drawXAxis, drawYAxis } from '../.././paint-utils/index';
 import { determineCandleColor } from '../../algorithm/color';
 import { divide } from '../../algorithm/divide';
 import { MovableRange } from '../../algorithm/range';
-import { TITLE_MARGIN_BOTTOM } from '../../constants/constants';
-import { Rect } from '../../graphic/primitive';
 import { autoResetStyle, Chart, ChartTheme, YAxisDetail } from '../chart';
 import { ChartTitle } from '../chart-title';
-import { CandleStickData, TimeShareData, VolumeData } from '../data-structure';
+import { CandleStickData, TimeSeriesData, VolumeData } from '../data-structure';
 import { Drawer, DrawerOptions } from '../drawer';
 
 export interface VolumeTheme extends ChartTheme {
@@ -156,8 +154,8 @@ export class VolumeDrawer extends Drawer {
     });
   }
 }
-export class TimeShareVolumeDrawer extends VolumeDrawer {
-  public calcDeltaPrice(currentValue: TimeShareData, currentIndex: number, data: TimeShareData[]): number {
+export class TimeSeriesVolumeDrawer extends VolumeDrawer {
+  public calcDeltaPrice(currentValue: TimeSeriesData, currentIndex: number, data: TimeSeriesData[]): number {
     if (currentIndex === 0) {
       return 1;
     }
