@@ -12,6 +12,7 @@ module.exports = env => {
     output: {
       library: 'FinanceChart',
       libraryTarget: 'umd',
+      globalObject: 'typeof self !== \'undefined\' ? self : this',
     },
     module: {
       rules: [
