@@ -51,6 +51,7 @@ const styles = {
   row: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     '& span': {
       display: 'inline-block',
     },
