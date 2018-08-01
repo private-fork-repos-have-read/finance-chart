@@ -358,9 +358,7 @@ export class Chart {
     this.rootElement.appendChild(this.canvas);
     this.context = this.canvas.getContext('2d');
     this.createDrawers();
-    if (typeof this.options.detailProvider === 'function') {
-      this.watchDetail();
-    }
+    this.listenEvents();
   }
   private createDrawers() {
     this._createMainDrawer();
@@ -472,9 +470,9 @@ export class Chart {
       ctx.fillStyle = this.theme.frontSight;
       ctx.fillText(yAxisDetail.right, rect.x + rect.width -  TICK_MARGIN * resolution, rect.y);
     }
-    this.drawDetail();
+    typeof this.options.detailProvider === 'function' && this.drawDetail();
   }
-  private watchDetail() {
+  private listenEvents() {
     const { canvas } = this;
     this.detailElement = document.createElement('div');
     this.detailElement.style.backgroundColor = this.theme.detailBackground;
