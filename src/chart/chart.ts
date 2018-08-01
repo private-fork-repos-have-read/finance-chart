@@ -1,5 +1,7 @@
 import { ScaleLinear, scaleLinear } from 'd3-scale';
 import detectIt from 'detect-it';
+import jss from 'jss';
+import preset from 'jss-preset-default';
 import clamp from 'lodash.clamp';
 import { MovableRange } from '../algorithm/range';
 import { TradeTimeSegment } from '../algorithm/tradetime';
@@ -14,12 +16,48 @@ import {
   X_FRONT_SIGHT_LABEL_PADDING,
 } from '../constants/constants';
 import { Point, Rect } from '../graphic/primitive';
-import './chart.scss';
 import {
   Drawer,
   DrawerContructor,
   DrawerOptions,
 } from './drawer';
+
+jss.setup(preset());
+
+const styles = {
+  'finance-chart': {
+    position: 'relative',
+    '& canvas': {
+      '-webkit-tap-highlight-color': 'transparent',
+      'user-select': 'none',
+    },
+  },
+  detail: {
+    boxSizing: 'border-box',
+    position: 'absolute',
+    padding: '8px',
+    width: '120px',
+    background: '#F0F2F2',
+    top: '30px',
+    right: '0',
+    display: 'none',
+    color: '#5E667F',
+    fontSize: '12px',
+  },
+  title: {
+    textAlign: 'center',
+    paddingBottom: 6,
+  },
+  row: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    '& span': {
+      display: 'inline-block',
+    },
+  },
+};
+
+const { classes } = jss.createStyleSheet(styles).attach();
 
 export interface YAxisDetail {
   left: string;
@@ -352,7 +390,7 @@ export class Chart {
     this.rootElement = (options.selector instanceof HTMLElement)
         ? options.selector as HTMLElement
         : document.querySelector(options.selector as string);
-    this.rootElement.className = 'finance-chart';
+    this.rootElement.classList.add(classes['finance-chart']);
     this.canvas = document.createElement('canvas');
     window.addEventListener('resize', this.onWindownResize);
     this.rootElement.appendChild(this.canvas);
@@ -477,7 +515,8 @@ export class Chart {
     this.detailElement = document.createElement('div');
     this.detailElement.style.backgroundColor = this.theme.detailBackground;
     this.detailElement.style.color = this.theme.detailColor;
-    this.detailElement.className = 'chart-detail';
+    // this.detailElement.className = 'chart-detail';
+    this.detailElement.classList.add(classes.detail);
     this.rootElement.appendChild(this.detailElement);
     canvas.addEventListener('contextmenu', this.onContextMenu);
     // will be 'hybrid' on android system
@@ -631,17 +670,15 @@ export class Chart {
     const { title, tables } = this.options.detailProvider(detailIndex, this.data);
     const fragment = document.createDocumentFragment();
     const $title = document.createElement('div');
-    $title.className = 'chart-detail__title';
+    $title.classList.add(classes.title);
     $title.textContent = title;
     fragment.appendChild($title);
     tables.forEach((row) => {
       const $row = document.createElement('div');
       const $name = document.createElement('span');
       const $value = document.createElement('span');
-      $row.className = 'chart-detail__row';
-      $name.className = 'chart-detail__row__name';
+      $row.classList.add(classes.row);
       $name.textContent = row.name;
-      $value.className = 'chart-detail__row__value';
       $value.textContent = row.value;
       $value.style.color = row.color || 'black';
       $row.appendChild($name);

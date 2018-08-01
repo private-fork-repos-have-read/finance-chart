@@ -6,7 +6,12 @@ Awesome finance chart
 
 ## Install
 
+```shell
+yarn add @gitpad/finance-chart
+```
+
 ## Usage
+
 
 ## How to build to project
 
@@ -28,15 +33,6 @@ brew install cairo
 ```shell
 npm run dist
 ```
-
-### TODO
-
-- [x] 分离主题颜色配置
-- [x] 分时图支持读取金融商品当日交易时间段绘制x轴
-- [x] 实现滑动查看更多k线数据事件
-- [ ] 分时当前价格指示动画
-- [ ] 实现缩放事件
-- [ ] 开发与示例文档
 
 ### donate
 
