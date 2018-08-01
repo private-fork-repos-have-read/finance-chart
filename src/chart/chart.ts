@@ -580,6 +580,7 @@ export class Chart {
   }
   @shouldRedraw()
   private showDetail(x: number, y: number) {
+    if (typeof this.options.detailProvider !== 'function') { return; }
     const { data } = this;
     const { resolution } = this.options;
     this.detailPoint = {

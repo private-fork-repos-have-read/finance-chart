@@ -214,33 +214,33 @@ function createKLine() {
         },
       },
     ],
-    detailProvider: (i, data) => {
-      const WEEK_DAY_MAP: { [index: number]: string} = {
-        0: '周日',
-        1: '周一',
-        2: '周二',
-        3: '周三',
-        4: '周四',
-        5: '周五',
-        6: '周六',
-      };
-      const date = new Date(data[i].time.replace(/-/g, '/'));
-      return {
-        title: `${formateDate(date, 'yyyy/MM/dd')} ${WEEK_DAY_MAP[date.getDay()]}`,
-        tables: [
-          {
-            color: 'green',
-            name: '开盘',
-            value: '10353',
-          },
-          {
-            color: '#7B7E8D',
-            name: '开盘',
-            value: '10353',
-          },
-        ],
-      };
-    },
+    // detailProvider: (i, data) => {
+    //   const WEEK_DAY_MAP: { [index: number]: string} = {
+    //     0: '周日',
+    //     1: '周一',
+    //     2: '周二',
+    //     3: '周三',
+    //     4: '周四',
+    //     5: '周五',
+    //     6: '周六',
+    //   };
+    //   const date = new Date(data[i].time.replace(/-/g, '/'));
+    //   return {
+    //     title: `${formateDate(date, 'yyyy/MM/dd')} ${WEEK_DAY_MAP[date.getDay()]}`,
+    //     tables: [
+    //       {
+    //         color: 'green',
+    //         name: '开盘',
+    //         value: '10353',
+    //       },
+    //       {
+    //         color: '#7B7E8D',
+    //         name: '开盘',
+    //         value: '10353',
+    //       },
+    //     ],
+    //   };
+    // },
     onMoreData(step) {
       if (step < 0) {
         return fetchKline(
