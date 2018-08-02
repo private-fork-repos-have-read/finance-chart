@@ -126,7 +126,7 @@ export function shouldRedraw() {
 }
 function createOptions(options: ChartOptions) {
   if (options.mainDrawer) {
-    if (options.auxiliaryDrawers.length === 0) {
+    if (!options.auxiliaryDrawers || options.auxiliaryDrawers.length === 0) {
       options.mainRatio = 1;
     }
   }
@@ -733,7 +733,7 @@ export class Chart {
     });
   }
   private _resizeAuxiliaryDrawer() {
-    this.auxiliaryDrawer.resize({
+    this.auxiliaryDrawer && this.auxiliaryDrawer.resize({
       x: 0,
       y: this.auxiliaryChartY,
       width: this.width,
