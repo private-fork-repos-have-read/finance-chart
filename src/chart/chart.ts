@@ -584,12 +584,14 @@ export class Chart {
     this.lastPinchDistance = distance;
   }
   private onScale(anchorX: number, count: number) {
-    const width = this.neighborDistance;
-    const centerIndex = Math.round(this.xScale.invert(anchorX));
-    this.recenterVisibleArea(centerIndex, this.movableRange.visibleLength + count);
-    this.resetXScale();
-    this.isDirty = true;
-    this.hasScale %= width;
+    if (this.mainDrawer.canScale) {
+      const width = this.neighborDistance;
+      const centerIndex = Math.round(this.xScale.invert(anchorX));
+      this.recenterVisibleArea(centerIndex, this.movableRange.visibleLength + count);
+      this.resetXScale();
+      this.isDirty = true;
+      this.hasScale %= width;
+    }
   }
   private onTouchMove(e: TouchEvent) {
     const { clientX, clientY } = e.touches[0];

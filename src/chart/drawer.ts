@@ -30,6 +30,7 @@ export class Drawer {
   public minValue = 0;
   public maxValue = 0;
   public tradeTime: TradeTime;
+  public canScale = true;
   protected selectedExclusivePlugin = 0;
   protected options: DrawerOptions;
   private _xAxisTickHeight = X_AXIS_HEIGHT;

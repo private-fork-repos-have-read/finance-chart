@@ -39,6 +39,7 @@ export class TimeSeriesDrawer extends Drawer {
   public theme: TimeSeriesTheme;
   public titleDrawer: ChartTitle;
   public range: MovableRange<TimeSeriesData>;
+  public canScale = false;
   public topValue = ((lastTopValue = Number.MIN_VALUE) =>
     () => {
       if (this.maxValue > lastTopValue) {
