@@ -1,5 +1,5 @@
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
-import { createLinePlugin, DatumColorMap, TitleBarTheme  } from './line-indicator-plugin';
+import { ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { createLinePlugin, DatumColorMap } from './line-indicator-plugin';
 
 export function createRSIPlugin(
   lineData: DatumColorMap[] = [

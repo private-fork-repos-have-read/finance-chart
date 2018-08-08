@@ -86,7 +86,7 @@ export class Drawer {
   }
   public getYAxisDetail(y: number): YAxisDetail {
     return {
-      left: null,
+      left: this.yScale.invert(y).toFixed(2),
       right: null,
     };
   }

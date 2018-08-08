@@ -1,5 +1,5 @@
 import { DrawerPluginConstructor } from '../chart/drawer-plugin';
-import { createYAxisPlugin } from '../index';
+import { createYAxisPlugin } from './y-axis-plugin';
 
 export function createKDJYAxisPlugin(): DrawerPluginConstructor {
   return class KDJYAxisPlugin extends createYAxisPlugin([20, 50, 80]) {

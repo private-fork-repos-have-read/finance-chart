@@ -101,7 +101,7 @@ function createKLine() {
       options: {
         defaultExclusivePlugins: 0,
         plugins: [
-          createYAxisPlugin(),
+          // createYAxisPlugin(),
         ],
         exclusivePlugins: [
           createMAPlugin([

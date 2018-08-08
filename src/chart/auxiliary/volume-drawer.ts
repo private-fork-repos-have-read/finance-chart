@@ -1,7 +1,6 @@
 import { max } from 'd3-array';
-import { scaleLinear } from 'd3-scale';
 import uniq from 'lodash.uniq';
-import { drawXAxis, drawYAxis } from '../.././paint-utils/index';
+import { drawYAxis } from '../.././paint-utils/index';
 import { determineCandleColor } from '../../algorithm/color';
 import { divide } from '../../algorithm/divide';
 import { MovableRange } from '../../algorithm/range';

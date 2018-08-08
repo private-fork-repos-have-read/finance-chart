@@ -294,10 +294,9 @@ export class Chart {
   public recenterVisibleArea(centerIndex: number, length: number) {
     const { minCount, maxCount } = this.options;
     const range = this.movableRange;
-
-    if (!this.isFetchingMoreData || this.noMoreData) {
-      range.recenter(centerIndex, clamp(
-        length, minCount, maxCount));
+    const nextLength = clamp(length, minCount, maxCount);
+    if (nextLength !== range.visibleLength && (!this.isFetchingMoreData || this.noMoreData)) {
+      range.recenter(centerIndex, nextLength);
       const visible = range.visible();
       const step = visible.length - range.visibleLength;
       if (step < 0 && !this.noMoreData) {

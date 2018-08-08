@@ -1,5 +1,5 @@
 import { DrawerPluginConstructor } from '../chart/drawer-plugin';
-import { createYAxisPlugin } from '../index';
+import { createYAxisPlugin } from './y-axis-plugin';
 
 export function createRSIYAxisPlugin(): DrawerPluginConstructor {
   return class RSIYAxisPlugin extends createYAxisPlugin([30, 50, 70]) {
