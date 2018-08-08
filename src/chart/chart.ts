@@ -561,37 +561,37 @@ export class Chart {
     }
   }
   private onPinch(e: TouchEvent) {
-    e.preventDefault();
-    const { resolution } = this.options;
-    const point1 = e.touches[0];
-    const point2 = e.touches[1];
-    this.clearTouchTimeout();
-    const distance = Math.sqrt(
-      (point2.clientX - point1.clientX) ** 2 + (point2.clientY - point1.clientY) ** 2,
-    ) * resolution;
-    if (this.lastPinchDistance !== 0) {
-      this.hasScale += (distance - this.lastPinchDistance) * -1;
-      const width = this.neighborDistance;
-      let count = this.hasScale / width;
-      count = count > 0 ? Math.floor(count) : Math.ceil(count);
-      if (count !== 0) {
-        const centerX =
-        (Math.min(point1.clientX, point2.clientX) +
-        Math.abs(point2.clientX - point1.clientX) / 2) * resolution;
-        this.onScale(centerX, count);
+    if (this.mainDrawer.canScale) {
+      e.preventDefault();
+      const { resolution } = this.options;
+      const point1 = e.touches[0];
+      const point2 = e.touches[1];
+      this.clearTouchTimeout();
+      const distance = Math.sqrt(
+        (point2.clientX - point1.clientX) ** 2 + (point2.clientY - point1.clientY) ** 2,
+      ) * resolution;
+      if (this.lastPinchDistance !== 0) {
+        this.hasScale += (distance - this.lastPinchDistance) * -1;
+        const width = this.neighborDistance;
+        let count = this.hasScale / width;
+        count = count > 0 ? Math.floor(count) : Math.ceil(count);
+        if (count !== 0) {
+          const centerX =
+          (Math.min(point1.clientX, point2.clientX) +
+          Math.abs(point2.clientX - point1.clientX) / 2) * resolution;
+          this.onScale(centerX, count);
+        }
       }
+      this.lastPinchDistance = distance;
     }
-    this.lastPinchDistance = distance;
   }
   private onScale(anchorX: number, count: number) {
-    if (this.mainDrawer.canScale) {
-      const width = this.neighborDistance;
-      const centerIndex = Math.round(this.xScale.invert(anchorX));
-      this.recenterVisibleArea(centerIndex, this.movableRange.visibleLength + count);
-      this.resetXScale();
-      this.isDirty = true;
-      this.hasScale %= width;
-    }
+    const width = this.neighborDistance;
+    const centerIndex = Math.round(this.xScale.invert(anchorX));
+    this.recenterVisibleArea(centerIndex, this.movableRange.visibleLength + count);
+    this.resetXScale();
+    this.isDirty = true;
+    this.hasScale %= width;
   }
   private onTouchMove(e: TouchEvent) {
     const { clientX, clientY } = e.touches[0];
@@ -672,18 +672,20 @@ export class Chart {
   }
   @shouldRedraw()
   private onWheel(e: WheelEvent) {
-    // disable bouncing animation on osx when trigger by touchpad
-    e.preventDefault();
-    const { resolution } = this.options;
-    this.hasScale += e.deltaY * resolution;
-    const width = this.neighborDistance;
-    let count = this.hasScale / width;
-    count = count > 0 ? Math.floor(count) : Math.ceil(count);
-    if (count !== 0) {
-      const rect = (e.target as HTMLElement).getBoundingClientRect();
-      const clientX = e.clientX;
-      const anchorX = (clientX - rect.left) * resolution;
-      this.onScale(anchorX, count);
+    if (this.mainDrawer.canScale) {
+      // disable bouncing animation on osx when trigger by touchpad
+      e.preventDefault();
+      const { resolution } = this.options;
+      this.hasScale += e.deltaY * resolution;
+      const width = this.neighborDistance;
+      let count = this.hasScale / width;
+      count = count > 0 ? Math.floor(count) : Math.ceil(count);
+      if (count !== 0) {
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        const clientX = e.clientX;
+        const anchorX = (clientX - rect.left) * resolution;
+        this.onScale(anchorX, count);
+      }
     }
   }
   @shouldRedraw()
@@ -834,6 +836,8 @@ export class Chart {
           this.noMoreData = true;
         }
       });
+    } else {
+      this.noMoreData = true;
     }
   }
 }
