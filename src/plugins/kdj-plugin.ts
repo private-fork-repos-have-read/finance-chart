@@ -36,6 +36,9 @@ export function createKDJPlugin(
         ...data.map((item) => (item as any)[dataObjectKey].k),
         ...data.map((item) => (item as any)[dataObjectKey].d),
         ...data.map((item) => (item as any)[dataObjectKey].j),
+        20,
+        50,
+        80,
       ];
       for (let i = 0, len = all.length; i < len; ++i) {
         const v = all[i];

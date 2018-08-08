@@ -36,6 +36,9 @@ export function createRSIPlugin(
         ...data.map((item) => (item as any)[dataObjectKey]['1']),
         ...data.map((item) => (item as any)[dataObjectKey]['2']),
         ...data.map((item) => (item as any)[dataObjectKey]['3']),
+        30,
+        50,
+        70,
       ];
       for (let i = 0, len = all.length; i < len; ++i) {
         const v = all[i];
