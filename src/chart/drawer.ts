@@ -26,7 +26,7 @@ export class Drawer {
   public chartFrame: Rect = { x: 0, y: 0, width: 0, height: 0};
   public yScale: ScaleLinear<number, number>;
   public range: MovableRange<object>;
-  public selectedIndex: number;
+  public _selectedIndex: number;
   public minValue = 0;
   public maxValue = 0;
   public tradeTime: TradeTime;
@@ -46,6 +46,13 @@ export class Drawer {
     this.installPlugin();
     this.tradeTime = new TradeTime(chart.options.tradeTimes);
     this.setRange(chart.movableRange);
+  }
+  get selectedIndex() {
+    const visible = this.range.visible();
+    return clamp(this._selectedIndex, 0, visible.length - 1);
+  }
+  set selectedIndex(val) {
+    this._selectedIndex = val;
   }
   public update() {
     // implement nothing

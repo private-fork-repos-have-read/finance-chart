@@ -46,4 +46,10 @@ export class MovableRange<T> {
     this.endPosition = pos;
     return moved;
   }
+  public recenter(visibleIndex: number, length: number) {
+    const i = clamp(this.visibleStartIndex() + visibleIndex, 0, this.data.length);
+    // console.log(i, `index: ${visibleIndex} length: ${this.visibleLength}}`);
+    this.endPosition = i + Math.floor(length / 2) + 1;
+    this.setVisibleLength(length);
+  }
 }

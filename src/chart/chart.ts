@@ -82,6 +82,8 @@ export interface ChartOptions {
   theme?: ChartTheme;
   resolution?: number;
   count?: number;
+  minCount?: number;
+  maxCount?: number;
   mainRatio?: number;
   selectedAuxiliaryDrawer?: number;
   auxiliaryDrawers?: DrawerConfig[];
@@ -136,7 +138,9 @@ function createOptions(options: ChartOptions) {
     tradeTimes: [],
     theme: ChartBlackTheme,
     resolution: (window.devicePixelRatio || 1),
-    count: 240,
+    count: 50,
+    minCount: 10,
+    maxCount: 300,
     mainRatio: 0.6,
     mainDrawer: null,
     selectedAuxiliaryDrawer: 0,
@@ -219,9 +223,12 @@ export class Chart {
   private touchTimeoutId: number;
   private lastMouseX: number;
   private lastMouseY: number;
-  private hasMoved = 0;
+  private lastPinchDistance = 0; // in pixel
+  private hasMoved = 0; // in pixel
+  private hasScale = 0; // in pixel
   private isDirty = false;
   private isFetchingMoreData = false;
+  private noMoreData = false;
 
   constructor(options: ChartOptions) {
     this.onWindownResize = this.onWindownResize.bind(this);
@@ -230,6 +237,7 @@ export class Chart {
     this.onMouseEnter = this.onMouseEnter.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseLeave = this.onMouseLeave.bind(this);
+    this.onWheel = this.onWheel.bind(this);
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchMove = this.onTouchMove.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
@@ -273,33 +281,27 @@ export class Chart {
     }
     this.isDirty = true;
   }
-  public drag(distance: number) {
-    const dist = distance * this.options.resolution;
-    this.hasMoved += dist;
-    const width = this.xScale(2) - this.xScale(1);
-    let count = this.hasMoved / width;
-    count = count > 0 ? Math.floor(count) : Math.ceil(count);
-    this.hasMoved %= width;
-    if (count !== 0) {
-      // reverse direction
-      this.move(-count);
-    }
-  }
   @shouldRedraw()
   public move(step: number) {
     const moved = this.movableRange.move(step);
     if (moved) {
       this.isDirty = true;
-    } else if (!this.isFetchingMoreData) {
-      const promise = this.options.onMoreData.call(this, step);
-      if (promise && typeof promise.then === 'function') {
-        this.isFetchingMoreData = true;
-        promise.then((data: any[]) => {
-          this.isFetchingMoreData = false;
-          data && data.length > 0 && this.setData(
-            step < 0 ? data.concat(this.movableRange.data) : this.movableRange.data.concat(data),
-          );
-        });
+    } else if (!this.isFetchingMoreData && !this.noMoreData) {
+      this.getMoreData(step);
+    }
+  }
+  @shouldRedraw()
+  public recenterVisibleArea(centerIndex: number, length: number) {
+    const { minCount, maxCount } = this.options;
+    const range = this.movableRange;
+
+    if (!this.isFetchingMoreData || this.noMoreData) {
+      range.recenter(centerIndex, clamp(
+        length, minCount, maxCount));
+      const visible = range.visible();
+      const step = visible.length - range.visibleLength;
+      if (step < 0 && !this.noMoreData) {
+        this.getMoreData(step);
       }
     }
   }
@@ -335,6 +337,7 @@ export class Chart {
     this.canvas.removeEventListener('touchstart', this.onTouchStart);
     this.canvas.removeEventListener('touchmove', this.onTouchMove);
     this.canvas.removeEventListener('touchend', this.onTouchEnd);
+    this.canvas.removeEventListener('wheel', this.onWheel);
     if (this.requestAnimationFrameId) {
       cancelAnimationFrame(this.requestAnimationFrameId);
     }
@@ -386,6 +389,12 @@ export class Chart {
   get auxiliaryChartY() {
     return this.mainChartHeight + 1;
   }
+  /**
+   * The distance of neighbor point
+   */
+  private get neighborDistance() {
+    return this.xScale(2) - this.xScale(1);
+  }
   private create() {
     const { options } = this;
     this.rootElement = (options.selector instanceof HTMLElement)
@@ -402,7 +411,7 @@ export class Chart {
   private createDrawers() {
     this._createMainDrawer();
     this._createAuxiliaryDrawer();
-    this.movableRange.setVisibleLength(this.count());
+    this.movableRange.setVisibleLength(this.mainDrawer.count() || this.options.count);
     this.resize(false);
   }
   private _createMainDrawer() {
@@ -527,6 +536,7 @@ export class Chart {
       canvas.addEventListener('mouseleave', this.onMouseLeave);
       canvas.addEventListener('mousedown', this.onMouseDown);
       canvas.addEventListener('mouseup', this.onMouseUp);
+      canvas.addEventListener('wheel', this.onWheel);
     } else {
       canvas.addEventListener('touchstart', this.onTouchStart);
       canvas.addEventListener('touchmove', this.onTouchMove);
@@ -538,17 +548,54 @@ export class Chart {
     const { clientX, clientY } = e.touches[0];
     this.lastMouseX = clientX;
     this.lastMouseY = clientY;
-    this.touchTimeoutId = window.setTimeout(() => {
-      this.showDetail(
-        clientX - rect.left,
-        clientY - rect.top,
-      );
-      this.touchTimeoutId = null;
-    }, 200);
+    if (e.touches.length === 2) {
+      this.onPinch(e);
+    } else {
+      this.touchTimeoutId = window.setTimeout(() => {
+        this.showDetail(
+          clientX - rect.left,
+          clientY - rect.top,
+        );
+        this.touchTimeoutId = null;
+      }, 200);
+    }
+  }
+  private onPinch(e: TouchEvent) {
+    e.preventDefault();
+    const { resolution } = this.options;
+    const point1 = e.touches[0];
+    const point2 = e.touches[1];
+    this.clearTouchTimeout();
+    const distance = Math.sqrt(
+      (point2.clientX - point1.clientX) ** 2 + (point2.clientY - point1.clientY) ** 2,
+    ) * resolution;
+    if (this.lastPinchDistance !== 0) {
+      this.hasScale += (distance - this.lastPinchDistance) * -1;
+      const width = this.neighborDistance;
+      let count = this.hasScale / width;
+      count = count > 0 ? Math.floor(count) : Math.ceil(count);
+      if (count !== 0) {
+        const centerX =
+        (Math.min(point1.clientX, point2.clientX) +
+        Math.abs(point2.clientX - point1.clientX) / 2) * resolution;
+        this.onScale(centerX, count);
+      }
+    }
+    this.lastPinchDistance = distance;
+  }
+  private onScale(anchorX: number, count: number) {
+    const width = this.neighborDistance;
+    const centerIndex = Math.round(this.xScale.invert(anchorX));
+    this.recenterVisibleArea(centerIndex, this.movableRange.visibleLength + count);
+    this.resetXScale();
+    this.isDirty = true;
+    this.hasScale %= width;
   }
   private onTouchMove(e: TouchEvent) {
     const { clientX, clientY } = e.touches[0];
-    if (this.interactive & InteractiveState.ShowDetail) {
+    if (e.touches.length === 2) {
+      this.onPinch(e);
+    } else if (this.interactive & InteractiveState.ShowDetail) {
       e.cancelable && e.preventDefault();
       const rect = (e.target as HTMLElement).getBoundingClientRect();
       this.showDetail(
@@ -576,7 +623,12 @@ export class Chart {
   private onTouchEnd(e: TouchEvent) {
     this.clearTouchTimeout();
     this.hideDetail();
+
     this.interactive = InteractiveState.None;
+
+    this.hasMoved = 0;
+    this.hasScale = 0;
+    this.lastPinchDistance = 0;
   }
   private clearTouchTimeout() {
     if (this.touchTimeoutId) {
@@ -612,11 +664,25 @@ export class Chart {
       e.clientY - rect.top,
     );
   }
-  private onMouseLeave(e: MouseEvent) {
-    const x = e.clientX - (e.target as HTMLElement).getBoundingClientRect().left;
-    const y = e.clientY - (e.target as HTMLElement).getBoundingClientRect().top;
+  private onMouseLeave() {
     this.hideDetail();
     this.interactive &= ~InteractiveState.Dragging;
+  }
+  @shouldRedraw()
+  private onWheel(e: WheelEvent) {
+    // disable bouncing animation on osx when trigger by touchpad
+    e.preventDefault();
+    const { resolution } = this.options;
+    this.hasScale += e.deltaY * resolution;
+    const width = this.neighborDistance;
+    let count = this.hasScale / width;
+    count = count > 0 ? Math.floor(count) : Math.ceil(count);
+    if (count !== 0) {
+      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      const clientX = e.clientX;
+      const anchorX = (clientX - rect.left) * resolution;
+      this.onScale(anchorX, count);
+    }
   }
   @shouldRedraw()
   private showDetail(x: number, y: number) {
@@ -739,5 +805,33 @@ export class Chart {
       width: this.width,
       height: this.auxiliaryChartHeight,
     });
+  }
+  private drag(distance: number) {
+    const dist = distance * this.options.resolution;
+    this.hasMoved += dist;
+    const width = this.neighborDistance;
+    let count = this.hasMoved / width;
+    count = count > 0 ? Math.floor(count) : Math.ceil(count);
+    this.hasMoved %= width;
+    if (count !== 0) {
+      // reverse direction
+      this.move(-count);
+    }
+  }
+  private getMoreData(step: number) {
+    const promise = this.options.onMoreData.call(this, step);
+    this.isFetchingMoreData = true;
+    if (promise && typeof promise.then === 'function') {
+      promise.then((data: any[]) => {
+        this.isFetchingMoreData = false;
+        if (data && data.length > 0) {
+          this.setData(
+            step < 0 ? data.concat(this.movableRange.data) : this.movableRange.data.concat(data),
+          );
+        } else {
+          this.noMoreData = true;
+        }
+      });
+    }
   }
 }

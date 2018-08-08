@@ -1,32 +1,26 @@
 import uniq from 'lodash.uniq';
-import { trimNulls } from '../algorithm/arrays';
 import { determineCandleColor } from '../algorithm/color';
 import { formateDate } from '../algorithm/date';
 import { divide } from '../algorithm/divide';
 import { MovableRange } from '../algorithm/range';
-import { Rect } from '../graphic/primitive';
-import { drawLine, drawXAxis, drawYAxis } from '../paint-utils/index';
+import { drawXAxis } from '../paint-utils/index';
 import {
   autoResetStyle,
   Chart,
-  DrawerConfig,
   YAxisDetail,
 } from './chart';
-import { ChartTitle } from './chart-title';
 import { CandleStickData } from './data-structure';
 import { Drawer, DrawerOptions } from './drawer';
 
 export class CandleStickDrawer extends Drawer {
   public range: MovableRange<CandleStickData>;
-  private _count: number;
   constructor(chart: Chart, options: DrawerOptions) {
     super(chart, options);
-    this._count = chart.options.count;
     this.xTickFormatter = this.xTickFormatter.bind(this);
     this.context = chart.context;
   }
   public count() {
-    return this._count;
+    return this.range.visibleLength;
   }
   public topValue = () => {
     return this.maxValue + 0.02;

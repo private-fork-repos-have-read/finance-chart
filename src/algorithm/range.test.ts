@@ -99,3 +99,15 @@ describe('MovableRange#visibleStartIndex', () => {
     expect(range.visibleStartIndex()).toBe(5);
   });
 });
+describe('MovableRange#recenter', () => {
+  test('Should recenter visible data corretly', () => {
+    const data = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const range = new MovableRange(data, 4);
+    range.recenter(1, 5);
+    expect(range.visible()).toEqual([4, 5, 6, 7, 8]);
+    range.recenter(0, 3);
+    expect(range.visible()).toEqual([3, 4, 5]);
+    range.recenter(2, 8);
+    expect(range.visible()).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+});

@@ -1,4 +1,3 @@
-import { Rect } from '../graphic/primitive';
 import { Drawer } from './drawer';
 
 export class DrawerPlugin {
