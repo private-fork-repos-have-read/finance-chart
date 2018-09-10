@@ -34,13 +34,3 @@ brew install cairo
 npm run dist
 ```
 
-### donate
-
-微信赏块披萨, 支持开发
-
-![微信赞赏码](doc/images/qr-code.jpg)
-
-
-### Thanks to BrowserStack
-
-[![234](https://3fxtqy18kygf3on3bu39kh93-wpengine.netdna-ssl.com/wp-content/uploads/2018/03/header-logo.svg)](https://www.browserstack.com)
