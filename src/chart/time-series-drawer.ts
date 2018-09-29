@@ -35,6 +35,9 @@ export const TimeSeriesBlackTheme = {
   avg: '#F89D37',
 };
 
+/**
+ * 分时图绘图器
+ */
 export class TimeSeriesDrawer extends Drawer {
   public theme: TimeSeriesTheme;
   public titleDrawer: ChartTitle;

@@ -72,26 +72,71 @@ export interface DrawerConfig {
 
 export interface ChartOptions {
   /**
-   * Selector use in document.querySelector or an document element
+   * 用于放置图表的dom节点或dom节点选择器
    */
   selector: string | HTMLElement;
+  /**
+   * 昨收价
+   */
   lastPrice: number;
+  /**
+   * 数据, 数据格式参考demo
+   */
   data: any[];
+  /**
+   * 金融产品交易时间段
+   */
   tradeTimes: TradeTimeSegment[];
+  /**
+   * 主图绘图器配置
+   */
   mainDrawer: DrawerConfig;
+  /**
+   * 主题配置，内置黑白两套主题, 默认使用黑色主题
+   */
   theme?: ChartTheme;
+  /**
+   * 设备像素比, 通常不需要主动设置
+   * 在性能较差的设备可主动设置为1，提高性能, 降低画面质量
+   */
   resolution?: number;
+  /**
+   * 默认绘制数据项数量
+   * 例如默认需要绘制50项，即显示50根k线
+   * 分时图绘制数据项数量只取决于交易时间, 忽略此配置
+   */
   count?: number;
+  /**
+   * 最小绘制数据项数量，控制缩放范围
+   */
   minCount?: number;
+  /**
+   * 最大绘制数据项数量，控制缩放范围
+   */
   maxCount?: number;
+  /**
+   * 主图大小屏占比，默认为0.6, 不配置副图时，屏占比为1，即占满绘图区域
+   */
   mainRatio?: number;
+  /**
+   * 默认选中副图
+   */
   selectedAuxiliaryDrawer?: number;
+  /**
+   * 副图配置
+   */
   auxiliaryDrawers?: DrawerConfig[];
+  /**
+   * 查看详情数据委托，返回用于显示的详情数据
+   */
   detailProvider?:
     (selectedIndex: number, data: any[]) => {
       title: string;
       tables: ChartDetail[]
     };
+  /**
+   * 加载更多数据委托
+   */
   onMoreData?:
     (this: Chart, tep: number) => void | Promise<any[]>;
 }
@@ -198,24 +243,70 @@ export const ChartBlackTheme: ChartTheme = {
   title: '#AEB4BE',
   titleBackground: '#22252B',
 };
+
+/**
+ * 金融图
+ */
 export class Chart {
+  /**
+   * @property 当前主题配置
+   */
   public theme: ChartTheme;
+  /**
+   * @property 当前图表配置
+   */
   public options: ChartOptions;
   public requestAnimationFrameId: number = null;
+  /**
+   * @property 图表界面根节点
+   */
   public rootElement: HTMLElement;
+  /**
+   * @property 图表详情界面根节点
+   */
   public detailElement: HTMLElement;
+  /**
+   * @property 画布节点
+   */
   public canvas: HTMLCanvasElement;
+  /**
+   * @property 绘图上下文
+   */
   public context: CanvasRenderingContext2D;
+  /**
+   * @property 线性缩放转换器实例
+   */
   public xScale: ScaleLinear<number, number>;
+  /**
+   * @property 实际绘制宽度，不受设备像素比影响
+   */
   public width: number = 0;
+  /**
+   * @property 实际绘制高度，不受设备像素比影响
+   */
   public height: number = 0;
+  /**
+   * @property 主图绘图器实例
+   */
   public mainDrawer: Drawer;
+  /**
+   * @property 当前激活的副图绘图实例
+   */
   public auxiliaryDrawer: Drawer;
+  /**
+   * @property 当前激活的副图序号
+   */
   public selectedAuxiliaryDrawer = 0;
+  /**
+   * @property 图表已被销毁
+   */
   public destroyed = false;
+  /**
+   * @property 当前数据的数据管理器实例
+   */
   public movableRange: MovableRange<object>;
   /**
-   * 昨收价
+   * @property 昨收价
    */
   public lastPrice: number;
   private detailPoint: Point;
@@ -268,6 +359,11 @@ export class Chart {
   public onWindownResize() {
     this.resize();
   }
+  /**
+   * 更新数据
+   * @param data 新数据
+   * @param clean 强制清除所有状态
+   */
   @shouldRedraw()
   public setData(data: any[], clean = false) {
     if (this.destroyed) {
@@ -281,6 +377,11 @@ export class Chart {
     }
     this.isDirty = true;
   }
+  /**
+   * 移动绘制数据区, 向前移动传入负数，向后移动传入正数
+   * 例如，向前移动1项，传入-1
+   * @param step 移动数目
+   */
   @shouldRedraw()
   public move(step: number) {
     const moved = this.movableRange.move(step);
@@ -304,6 +405,10 @@ export class Chart {
       }
     }
   }
+  /**
+   * 更新昨收价
+   * @param value 昨收价
+   */
   @shouldRedraw()
   public setLastPrice(value: number) {
     this.lastPrice = value;
@@ -324,6 +429,9 @@ export class Chart {
       });
     }
   }
+  /**
+   * 销毁图表实例
+   */
   public destroy() {
     this.destroyed = true;
     window.removeEventListener('resize', this.onWindownResize);
@@ -345,14 +453,24 @@ export class Chart {
 
     this.destroyDrawer();
   }
+  /**
+   * 切换下一个互斥插件
+   */
   @shouldRedraw()
   public nextMainExclusivePlugin() {
     this.mainDrawer.nextExclusivePlugin();
   }
+  /**
+   * 使用指定互斥插件
+   * @param index 序号
+   */
   @shouldRedraw()
   public useMainExclusivePlugin(index: number) {
     this.mainDrawer.useExclusivePlugin(index);
   }
+  /**
+   * 切换下一个副图
+   */
   @shouldRedraw()
   public nextAuxiliarDrawer() {
     const auxiliaryDrawerCount = this.options.auxiliaryDrawers.length;
@@ -361,6 +479,10 @@ export class Chart {
     }
     this.useAuxiliarDrawer((this.selectedAuxiliaryDrawer + 1) % auxiliaryDrawerCount);
   }
+  /**
+   * 切换下一个副图
+   * @param index 副图序号
+   */
   @shouldRedraw()
   public useAuxiliarDrawer(index: number) {
     if (index < 0 || index >= this.options.auxiliaryDrawers.length) {
@@ -644,7 +766,7 @@ export class Chart {
   private onMouseUp(e: MouseEvent) {
     this.interactive &= ~InteractiveState.Dragging;
   }
-  private onContextMenu(e: PointerEvent) {
+  private onContextMenu(e: MouseEvent) {
     e.preventDefault();
   }
   private onMouseEnter(e: MouseEvent) {

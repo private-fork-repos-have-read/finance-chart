@@ -153,6 +153,9 @@ export class VolumeDrawer extends Drawer {
     });
   }
 }
+/**
+ * 分时图成交量绘图器
+ */
 export class TimeSeriesVolumeDrawer extends VolumeDrawer {
   public calcDeltaPrice(currentValue: TimeSeriesData, currentIndex: number, data: TimeSeriesData[]): number {
     if (currentIndex === 0) {
@@ -161,6 +164,9 @@ export class TimeSeriesVolumeDrawer extends VolumeDrawer {
     return currentValue.price - data[currentIndex - 1].price;
   }
 }
+/**
+ * 蜡烛图成交量绘图器
+ */
 export class CandleStickVolumeDrawer extends VolumeDrawer {
   public range: MovableRange<CandleStickData>;
   public calcDeltaPrice(currentValue: CandleStickData, currentIndex: number): number {

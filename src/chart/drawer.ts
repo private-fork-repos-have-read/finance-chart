@@ -12,24 +12,76 @@ import {
   ExclusiveDrawerPluginConstructor,
 } from './drawer-plugin';
 
+/**
+ * 绘图器初始化选项
+ */
 export interface DrawerOptions {
+    /**
+     * @property 普通插件，每次绘制过程，所有插件同时执行
+     */
     plugins: DrawerPluginConstructor[];
+    /**
+     * @property 互斥插件，每次绘制过程，只能有一个插件激活并执行
+     */
     exclusivePlugins?: ExclusiveDrawerPluginConstructor[];
+    /**
+     * @property 默认选中的互斥插件
+     */
     defaultExclusivePlugins?: number;
 }
 
+/**
+ * 绘图器基类
+ * 基类提供绘图器需要的基本功能，但不包含任何绘图实现，可以通过派生类覆盖相关函数或使用插件添加职责实现绘图
+ */
 export class Drawer {
+  /**
+   * @property 当前在使用的插件
+   */
   public plugins: DrawerPlugin[] = [];
+  /**
+   * @property 当前在使用的互斥插件
+   */
   public exclusivePlugins: ExclusiveDrawerPlugin[] = [];
+  /**
+   * @property 当前使用的绘图上下文
+   */
   public context: CanvasRenderingContext2D;
+  /**
+   * @property 应绘图区域范围
+   */
   public frame: Rect = { x: 0, y: 0, width: 0, height: 0};
+  /**
+   * @property 除了标题栏区域，应绘图区域范围
+   */
   public chartFrame: Rect = { x: 0, y: 0, width: 0, height: 0};
+  /**
+   * @property y轴 d3.js 线性缩放实例
+   */
   public yScale: ScaleLinear<number, number>;
+  /**
+   * @property 当前用于绘图的数据管理器
+   */
   public range: MovableRange<object>;
+  /**
+   * @property 当前选中数据项, 选中数据项会显示在数据详情界面
+   */
   public _selectedIndex: number;
+  /**
+   * @property 最小数据
+   */
   public minValue = 0;
+  /**
+   * @property 最大数据
+   */
   public maxValue = 0;
+  /**
+   * @property 交易时间管理器实例
+   */
   public tradeTime: TradeTime;
+  /**
+   * @property 允许缩放
+   */
   public canScale = true;
   protected selectedExclusivePlugin = 0;
   protected options: DrawerOptions;
@@ -55,17 +107,26 @@ export class Drawer {
   set selectedIndex(val) {
     this._selectedIndex = val;
   }
+  /**
+   * 每次绘图过程，调用一次，需要完全覆盖绘图行为时，在派生类中覆盖此方法
+   */
   public update() {
     // implement nothing
     this.predraw();
     this.draw();
     this.postdraw();
   }
+  /**
+   * 每次绘制十字线后调用，可用于绘制小部件
+   */
   public drawFrontSight() {
     // implement nothing
   }
+  /**
+   * 每次浏览器窗口大小变化后调用
+   * @param frame 应绘图区域大小
+   */
   public resize(frame: Rect) {
-    const { resolution } = this.chart.options;
     this.frame = frame;
     this.chartFrame = {
       ...frame,
@@ -76,26 +137,45 @@ export class Drawer {
     };
     this.resetYScale();
   }
+  /**
+   * 每次数据变化后调用
+   * @param range 新数据
+   */
   public setRange(range: MovableRange<object>) {
     this.range = range;
     this.pluginCall('onSetRange');
     this.resetYScale();
   }
+  /**
+   * 选中新的数据项
+   * @param i 选中数据项
+   */
   public select(i: number) {
     this.selectedIndex = i;
   }
+  /**
+   * 获取y轴详细描述数据
+   * @param y y轴位置
+   */
   public getYAxisDetail(y: number): YAxisDetail {
     return {
       left: this.yScale.invert(y).toFixed(2),
       right: null,
     };
   }
+  /**
+   * 获取某一项数据详细描述数据
+   * @param i 数据项
+   */
   public getXAxisDetail(i: number): string {
     return null;
   }
   public count(): number {
     return 0;
   }
+  /**
+   * 切换下一个互斥插件
+   */
   public nextExclusivePlugin() {
     const pluginsCount = this.exclusivePlugins.length;
     if (pluginsCount === 0) {
@@ -103,6 +183,10 @@ export class Drawer {
     }
     this.useExclusivePlugin((this.selectedExclusivePlugin + 1) % pluginsCount);
   }
+  /**
+   * 使用指定互斥插件
+   * @param index 互斥插件序号
+   */
   public useExclusivePlugin(index: number) {
     if (this.exclusivePlugins.length === 0) {
       this.selectedExclusivePlugin = -1;
@@ -116,29 +200,50 @@ export class Drawer {
       plugin && plugin.onSetRange();
     }
   }
+  /**
+   * 绘图区间数据最大值，比实际数据最大值略大
+   */
   public topValue = () => {
     const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
     return this.maxValue + extra;
   }
+  /**
+   * 绘图区间数据最小值，比实际数据最小值略小
+   */
   public bottomValue = () => {
     const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
     return this.minValue - extra;
   }
+  /**
+   * 绘图前调用，预绘图, 可用于绘制背景，网格线等
+   */
   protected predraw() {
     this.pluginCall('predraw');
   }
+  /**
+   * 绘图时调用，绘图, 绘制最重要的内容
+   */
   protected draw() {
     this.pluginCall('draw');
   }
+  /**
+   * 绘图后调用，绘图后处理, 绘制小部件等
+   */
   protected postdraw() {
     this.pluginCall('postdraw');
   }
+  /**
+   * 标题栏高度, 单位为px
+   */
   public get titleHeight() {
     return TITLE_HEIGHT * this.chart.options.resolution;
   }
   protected set xAxisTickHeight(value) {
     this._xAxisTickHeight = value;
   }
+  /**
+   * x轴高度, 单位为px
+   */
   protected get xAxisTickHeight() {
     return this._xAxisTickHeight * this.chart.options.resolution;
   }
