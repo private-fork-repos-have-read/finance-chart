@@ -47,8 +47,9 @@ export class TimeSeriesDrawer extends Drawer {
   public topValue = ((lastTopValue = Number.MIN_VALUE) =>
     () => {
       if (this.maxValue > lastTopValue) {
-        const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
-        lastTopValue = this.maxValue + extra;
+        // const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
+        //   console.log('this.maxValue',this.maxValue);
+        lastTopValue = this.maxValue + (this.maxValue * 0.01);
       }
       return lastTopValue;
     }
@@ -56,8 +57,9 @@ export class TimeSeriesDrawer extends Drawer {
   public bottomValue = ((lastBottomValue = Number.MAX_VALUE) =>
     () => {
       if (this.minValue < lastBottomValue) {
-        const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
-        lastBottomValue = this.minValue - extra;
+        // const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
+        //   console.log('this.minValue',this.minValue);
+        lastBottomValue = this.minValue - (this.minValue * 0.01);
       }
       return lastBottomValue;
     }

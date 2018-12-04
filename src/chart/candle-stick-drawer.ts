@@ -23,10 +23,10 @@ export class CandleStickDrawer extends Drawer {
     return this.range.visibleLength;
   }
   public topValue = () => {
-    return this.maxValue + 0.02;
+    return this.maxValue + (this.maxValue * 0.01);
   }
   public bottomValue = () => {
-    return this.minValue - 0.02;
+    return this.minValue - (this.minValue * 0.01);
   }
   public setRange(range: MovableRange<CandleStickData>) {
     const data = range.visible();
