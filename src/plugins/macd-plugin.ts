@@ -2,7 +2,7 @@ import { trimNulls } from '../algorithm/arrays';
 import { ChartTitle } from '../chart/chart-title';
 import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
 import { Drawer } from '../index';
-import { drawLine } from '../paint-utils/index';
+import { drawLine, findMaxValue, findMinValue } from '../paint-utils/index';
 import { DatumColorMap } from './line-indicator-plugin';
 
 export function createMACDPlugin(
@@ -84,24 +84,14 @@ export function createMACDPlugin(
       context.restore();
     }
     public onSetRange() {
-      let minValue = Number.MAX_SAFE_INTEGER;
-      let maxValue = Number.MIN_SAFE_INTEGER;
       const data = this.pluginHost.range.visible();
       const all = [
         ...data.map((item) => (item as any)[dataObjectKey].dif),
         ...data.map((item) => (item as any)[dataObjectKey].dea),
         ...data.map((item) => (item as any)[dataObjectKey].macd),
       ];
-      for (let i = 0, len = all.length; i < len; ++i) {
-        const v = all[i];
-        if (v < minValue) {
-          minValue = v;
-        } else if (v > maxValue) {
-          maxValue = v;
-        }
-      }
-      this.pluginHost.minValue = minValue;
-      this.pluginHost.maxValue = maxValue;
+      this.pluginHost.minValue = findMinValue(all);
+      this.pluginHost.maxValue = findMaxValue(all);
     }
     protected drawTitle(i: number) {
       const { context: ctx, frame, range } = this.pluginHost;

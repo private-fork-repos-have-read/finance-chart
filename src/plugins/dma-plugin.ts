@@ -1,4 +1,5 @@
 import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { findMaxValue, findMinValue } from '../paint-utils/index';
 import { createLinePlugin, DatumColorMap, TitleBarTheme  } from './line-indicator-plugin';
 
 export function createDMAPlugin(
@@ -25,23 +26,14 @@ export function createDMAPlugin(
     },
   ) {
     public onSetRange() {
-      let minValue = Number.MAX_SAFE_INTEGER;
-      let maxValue = Number.MIN_SAFE_INTEGER;
       const data = this.pluginHost.range.visible();
       const all = [
         ...data.map((item) => (item as any)[dataObjectKey].dif),
         ...data.map((item) => (item as any)[dataObjectKey].ama),
       ];
-      for (let i = 0, len = all.length; i < len; ++i) {
-        const v = all[i];
-        if (v < minValue) {
-          minValue = v;
-        } else if (v > maxValue) {
-          maxValue = v;
-        }
-      }
-      this.pluginHost.minValue = minValue;
-      this.pluginHost.maxValue = maxValue;
+
+      this.pluginHost.minValue = findMinValue(all);
+      this.pluginHost.maxValue = findMaxValue(all);
     }
   };
 }

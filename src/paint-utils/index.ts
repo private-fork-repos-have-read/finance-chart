@@ -120,3 +120,11 @@ export function drawXAxis(
     ctx.stroke();
     ctx.restore();
 }
+
+export function findMinValue(arr: number[]) {
+  return Math.min.apply(null, arr);
+}
+
+export function findMaxValue(arr: number[]) {
+  return  Math.max.apply(null, arr);
+}
