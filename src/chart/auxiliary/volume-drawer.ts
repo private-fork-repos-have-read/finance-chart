@@ -15,6 +15,7 @@ export interface VolumeTheme extends ChartTheme {
     volumeText: string;
   };
 }
+
 export const VolumeWhiteTheme = {
   same: '#5E6572',
   volumeText: '#F78081',
@@ -32,10 +33,31 @@ const shortenVolume = (v: number) => {
   return scaleV.toFixed(2);
 };
 
+function humanNumber(number: any, p = 2, placeHolder = '--') {
+  if (typeof number === 'string') { return number; }
+  if (Number.isNaN(number) || number === null || number === undefined) { return placeHolder; }
+  const ds = [[9, 6, 3, 0], ['B', 'M', 'K', '']];
+  const sign = number > 0 ? 1 : -1;
+  const absNum = Math.abs(number);
+  const n = absNum.toString().split('.').shift();
+  const digit = n.split('').length;
+  const pre = Number.parseInt(n, 10);
+  let i = 0;
+  while (i <= ds[0].length) {
+    const f = ds[0][i] as number;
+    if (digit / f > 1) {
+      const v = (pre / Math.pow(10, f) * sign).toFixed(p);
+      return `${ v }${ ds[1][i] }`;
+    }
+    i += 1;
+  }
+}
+
 const volumeLabel = (v: number) => {
   const scaleV = v / VolumeDrawer.proportion;
-  return `VOL: ${scaleV}`;
+  return `VOL: ${ scaleV }`;
 };
+
 /**
  * Volume chart drawer
  */
@@ -45,6 +67,7 @@ export class VolumeDrawer extends Drawer {
   public theme: VolumeTheme;
   public titleDrawer: ChartTitle;
   public range: MovableRange<VolumeData>;
+
   constructor(chart: Chart, options: DrawerOptions) {
     super(chart, options);
     this.theme = Object.assign({
@@ -65,9 +88,11 @@ export class VolumeDrawer extends Drawer {
       this.chart.options.resolution,
     );
   }
+
   public calcDeltaPrice(currentValue: object, currentIndex: number, data: object[]): number {
     return 1;
   }
+
   public setRange(range: MovableRange<VolumeData>) {
     const data = range.visible();
     if (data.length > 0) {
@@ -78,25 +103,29 @@ export class VolumeDrawer extends Drawer {
     this.minValue = 0;
     super.setRange(range);
   }
+
   public getYAxisDetail(y: number): YAxisDetail {
     return {
       left: shortenVolume(this.yScale.invert(y)),
     };
   }
+
   protected draw() {
     const data = this.range.visible();
     this.drawAxes();
     this.drawTitle(this.selectedIndex || data.length - 1);
     this.drawVolumes();
   }
+
   protected drawAxes() {
     this.drawYAxis();
   }
+
   protected drawYAxis() {
     const tickValues = uniq(
       divide(this.minValue, this.maxValue, 3))
-        .map((n) => ({ value: Math.round(n), color: this.theme.yTick }),
-    );
+      .map((n) => ({ value: Math.round(n), color: this.theme.yTick }),
+      );
     tickValues.shift(); // remove first item, 0 volume
     const maxTickValue =
       max(tickValues, (d) => d.value) / VolumeDrawer.proportion;
@@ -111,14 +140,15 @@ export class VolumeDrawer extends Drawer {
       this.theme.gridLine,
       (v, i) => {
         // const scaledV = v / VolumeDrawer.proportion
-        let r = shortenVolume(v);
+        let r = humanNumber(v);
         if (useWUnit && i === tickValues.length - 1) {
-          r =  `${r}万${VolumeDrawer.unit}`;
+          r = `${ r }${ VolumeDrawer.unit }`;
         }
         return r;
       },
     );
   }
+
   @autoResetStyle()
   protected drawVolumes() {
     const { xScale } = this.chart;
@@ -141,6 +171,7 @@ export class VolumeDrawer extends Drawer {
       ctx.fillRect(x - width / 2, y, width, height);
     });
   }
+
   private drawTitle(i: number) {
     const data = this.range.visible();
     const d = data[i];
@@ -151,6 +182,7 @@ export class VolumeDrawer extends Drawer {
     });
   }
 }
+
 /**
  * 分时图成交量绘图器
  */
@@ -162,11 +194,13 @@ export class TimeSeriesVolumeDrawer extends VolumeDrawer {
     return currentValue.price - data[currentIndex - 1].price;
   }
 }
+
 /**
  * 蜡烛图成交量绘图器
  */
 export class CandleStickVolumeDrawer extends VolumeDrawer {
   public range: MovableRange<CandleStickData>;
+
   public calcDeltaPrice(currentValue: CandleStickData, currentIndex: number): number {
     const range = this.range;
     return determineCandleColor(currentValue, currentIndex, range);
