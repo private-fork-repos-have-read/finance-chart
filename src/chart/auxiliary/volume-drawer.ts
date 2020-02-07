@@ -31,12 +31,10 @@ const shortenVolume = (v: number) => {
   }
   return scaleV.toFixed(2);
 };
+
 const volumeLabel = (v: number) => {
   const scaleV = v / VolumeDrawer.proportion;
-  if (scaleV > 10000) {
-    return `VOL: ${(scaleV / 10000).toFixed(2)}万`;
-  }
-  return `VOL: ${scaleV.toFixed(2)}`;
+  return `VOL: ${scaleV}`;
 };
 /**
  * Volume chart drawer
