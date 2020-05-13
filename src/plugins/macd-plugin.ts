@@ -1,6 +1,6 @@
 import { trimNulls } from '../algorithm/arrays';
 import { ChartTitle } from '../chart/chart-title';
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IExclusiveDrawerPlugin, IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
 import { Drawer } from '../index';
 import { drawLine, findMaxValue, findMinValue } from '../paint-utils/index';
 import { DatumColorMap } from './line-indicator-plugin';
@@ -21,8 +21,8 @@ export function createMACDPlugin(
     },
   ],
   dataObjectKey = 'macd',
-): ExclusiveDrawerPluginConstructor {
-  return class MACDPlugin extends ExclusiveDrawerPlugin {
+): IExclusiveDrawerPluginConstructor {
+  return class MACDPlugin extends IExclusiveDrawerPlugin {
     public titleDrawer: ChartTitle;
     constructor(protected pluginHost: Drawer) {
       super(pluginHost);
@@ -40,6 +40,7 @@ export function createMACDPlugin(
         this.pluginHost.chart.options.resolution,
       );
     }
+
     public postdraw() {
       const { yScale, range, context } = this.pluginHost;
       const { xScale, theme, options } = this.pluginHost.chart;
@@ -50,10 +51,12 @@ export function createMACDPlugin(
         const trimed = trimNulls(data);
         drawLine(
           this.pluginHost.context,
-          trimed.result.map((d, i) => ({
-            x: xScale(i + trimed.deleted),
-            y: yScale(d),
-          })),
+          trimed.result.map((d, i) => {
+            return ({
+              x: xScale(i + trimed.deleted),
+              y: yScale(d),
+            });
+          }),
           color,
           1 * this.pluginHost.chart.options.resolution,
         );

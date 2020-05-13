@@ -1,10 +1,10 @@
 import uniq from 'lodash.uniq';
 import { divide } from '../algorithm/divide';
-import { DrawerPlugin, DrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IDrawerPlugin, IDrawerPluginConstructor } from '../types/drawer-plugin';
 import { drawYAxis, TickValueDescription } from '../paint-utils/index';
 
-export function createYAxisPlugin(ticks: number | number[] = 5, precision = 2): DrawerPluginConstructor {
-  return class YAxisPlugin extends DrawerPlugin {
+export function createYAxisPlugin(ticks: number | number[] = 5, precision = 2): IDrawerPluginConstructor {
+  return class YAxisPlugin extends IDrawerPlugin {
     public predraw() {
       const host = this.pluginHost;
       let tickValues: TickValueDescription[];

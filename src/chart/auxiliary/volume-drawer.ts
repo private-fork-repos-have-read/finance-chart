@@ -4,12 +4,18 @@ import { drawYAxis } from '../.././paint-utils/index';
 import { determineCandleColor } from '../../algorithm/color';
 import { divide } from '../../algorithm/divide';
 import { MovableRange } from '../../algorithm/range';
-import { autoResetStyle, Chart, ChartTheme, YAxisDetail } from '../chart';
+import { Chart } from '../chart';
 import { ChartTitle } from '../chart-title';
-import { CandleStickData, TimeSeriesData, VolumeData } from '../data-structure';
-import { Drawer, DrawerOptions } from '../drawer';
+import { Drawer } from '../drawer';
 
-export interface VolumeTheme extends ChartTheme {
+import { autoResetStyle } from '../../helper/class-decorator';
+
+import { IChartTheme } from '../../types/chart-theme';
+import { IYAxisDetail } from '../../types/chart';
+import { IDrawerOptions } from '../../types/drawer';
+import { ICandleStickData, ITimeSeriesData, IVolumeData } from '../../types/data-structure';
+
+export interface VolumeTheme extends IChartTheme {
   volume: {
     same: string;
     volumeText: string;
@@ -66,9 +72,9 @@ export class VolumeDrawer extends Drawer {
   public static unit = '手';
   public theme: VolumeTheme;
   public titleDrawer: ChartTitle;
-  public range: MovableRange<VolumeData>;
+  public range: MovableRange<IVolumeData>;
 
-  constructor(chart: Chart, options: DrawerOptions) {
+  constructor(chart: Chart, options: IDrawerOptions) {
     super(chart, options);
     this.theme = Object.assign({
       volume: VolumeBlackTheme,
@@ -93,7 +99,7 @@ export class VolumeDrawer extends Drawer {
     return 1;
   }
 
-  public setRange(range: MovableRange<VolumeData>) {
+  public setRange(range: MovableRange<IVolumeData>) {
     const data = range.visible();
     if (data.length > 0) {
       this.maxValue = max(data, (d) => d.volume);
@@ -104,7 +110,7 @@ export class VolumeDrawer extends Drawer {
     super.setRange(range);
   }
 
-  public getYAxisDetail(y: number): YAxisDetail {
+  public getYAxisDetail(y: number): IYAxisDetail {
     return {
       left: shortenVolume(this.yScale.invert(y)),
     };
@@ -187,7 +193,7 @@ export class VolumeDrawer extends Drawer {
  * 分时图成交量绘图器
  */
 export class TimeSeriesVolumeDrawer extends VolumeDrawer {
-  public calcDeltaPrice(currentValue: TimeSeriesData, currentIndex: number, data: TimeSeriesData[]): number {
+  public calcDeltaPrice(currentValue: ITimeSeriesData, currentIndex: number, data: ITimeSeriesData[]): number {
     if (currentIndex === 0) {
       return 1;
     }
@@ -199,9 +205,9 @@ export class TimeSeriesVolumeDrawer extends VolumeDrawer {
  * 蜡烛图成交量绘图器
  */
 export class CandleStickVolumeDrawer extends VolumeDrawer {
-  public range: MovableRange<CandleStickData>;
+  public range: MovableRange<ICandleStickData>;
 
-  public calcDeltaPrice(currentValue: CandleStickData, currentIndex: number): number {
+  public calcDeltaPrice(currentValue: ICandleStickData, currentIndex: number): number {
     const range = this.range;
     return determineCandleColor(currentValue, currentIndex, range);
   }

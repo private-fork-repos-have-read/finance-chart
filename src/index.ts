@@ -1,7 +1,7 @@
 export * from './chart/chart';
 
 /* export data structure */
-export * from './chart/data-structure';
+export * from './types/data-structure';
 
 /* export all main drawer */
 export * from './chart/drawer';
@@ -30,3 +30,5 @@ export * from './plugins/macd-plugin';
 export * from './plugins/y-axis-plugin';
 export * from './plugins/kdj-y-axis-plugin';
 export * from './plugins/rsi-y-axis-plugin';
+export * from './plugins/dz-custom-plugin';
+export * from './plugins/dz-main-custom-plugin';

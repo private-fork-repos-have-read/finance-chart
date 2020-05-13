@@ -2,33 +2,16 @@ import { ScaleLinear, scaleLinear } from 'd3-scale';
 import clamp from 'lodash.clamp';
 import { MovableRange } from '../algorithm/range';
 import { TITLE_HEIGHT, TITLE_MARGIN_BOTTOM, X_AXIS_HEIGHT } from '../constants/constants';
-import { Rect } from '../graphic/primitive';
 import { TradeTime } from '../index';
-import { Chart, YAxisDetail } from './chart';
-import {
-  DrawerPlugin,
-  DrawerPluginConstructor,
-  ExclusiveDrawerPlugin,
-  ExclusiveDrawerPluginConstructor,
-} from './drawer-plugin';
 
-/**
- * 绘图器初始化选项
- */
-export interface DrawerOptions {
-    /**
-     * @property 普通插件，每次绘制过程，所有插件同时执行
-     */
-    plugins: DrawerPluginConstructor[];
-    /**
-     * @property 互斥插件，每次绘制过程，只能有一个插件激活并执行
-     */
-    exclusivePlugins?: ExclusiveDrawerPluginConstructor[];
-    /**
-     * @property 默认选中的互斥插件
-     */
-    defaultExclusivePlugins?: number;
-}
+import { Chart } from './chart';
+import { IYAxisDetail } from '../types/chart';
+import { IDrawerOptions, IRect } from '../types/drawer';
+
+import {
+  IDrawerPlugin,
+  IExclusiveDrawerPlugin,
+} from '../types/drawer-plugin';
 
 /**
  * 绘图器基类
@@ -38,11 +21,11 @@ export class Drawer {
   /**
    * @property 当前在使用的插件
    */
-  public plugins: DrawerPlugin[] = [];
+  public plugins: IDrawerPlugin[] = [];
   /**
    * @property 当前在使用的互斥插件
    */
-  public exclusivePlugins: ExclusiveDrawerPlugin[] = [];
+  public exclusivePlugins: IExclusiveDrawerPlugin[] = [];
   /**
    * @property 当前使用的绘图上下文
    */
@@ -50,11 +33,11 @@ export class Drawer {
   /**
    * @property 应绘图区域范围
    */
-  public frame: Rect = { x: 0, y: 0, width: 0, height: 0};
+  public frame: IRect = { x: 0, y: 0, width: 0, height: 0};
   /**
    * @property 除了标题栏区域，应绘图区域范围
    */
-  public chartFrame: Rect = { x: 0, y: 0, width: 0, height: 0};
+  public chartFrame: IRect = { x: 0, y: 0, width: 0, height: 0};
   /**
    * @property y轴 d3.js 线性缩放实例
    */
@@ -84,11 +67,11 @@ export class Drawer {
    */
   public canScale = true;
   protected selectedExclusivePlugin = 0;
-  protected options: DrawerOptions;
+  protected options: IDrawerOptions;
   private _xAxisTickHeight = X_AXIS_HEIGHT;
   constructor(
     public chart: Chart,
-    options: DrawerOptions) {
+    options: IDrawerOptions) {
     this.options = Object.assign({}, {
       plugins: [],
       exclusivePlugins: [],
@@ -126,7 +109,7 @@ export class Drawer {
    * 每次浏览器窗口大小变化后调用
    * @param frame 应绘图区域大小
    */
-  public resize(frame: Rect) {
+  public resize(frame: IRect) {
     this.frame = frame;
     this.chartFrame = {
       ...frame,
@@ -157,7 +140,7 @@ export class Drawer {
    * 获取y轴详细描述数据
    * @param y y轴位置
    */
-  public getYAxisDetail(y: number): YAxisDetail {
+  public getYAxisDetail(y: number): IYAxisDetail {
     return {
       left: this.yScale.invert(y).toFixed(2),
       right: null,
@@ -183,6 +166,7 @@ export class Drawer {
     }
     this.useExclusivePlugin((this.selectedExclusivePlugin + 1) % pluginsCount);
   }
+
   /**
    * 使用指定互斥插件
    * @param index 互斥插件序号
@@ -200,6 +184,7 @@ export class Drawer {
       plugin && plugin.onSetRange();
     }
   }
+
   /**
    * 绘图区间数据最大值，比实际数据最大值略大
    */
@@ -226,27 +211,37 @@ export class Drawer {
   protected draw() {
     this.pluginCall('draw');
   }
+
   /**
    * 绘图后调用，绘图后处理, 绘制小部件等
    */
   protected postdraw() {
     this.pluginCall('postdraw');
   }
+
   /**
    * 标题栏高度, 单位为px
    */
   public get titleHeight() {
     return TITLE_HEIGHT * this.chart.options.resolution;
   }
+
   protected set xAxisTickHeight(value) {
     this._xAxisTickHeight = value;
   }
+
   /**
    * x轴高度, 单位为px
+   *
    */
   protected get xAxisTickHeight() {
     return this._xAxisTickHeight * this.chart.options.resolution;
   }
+
+  /**
+   * ResetYScale
+   *
+   */
   protected resetYScale() {
     const { chartFrame } = this;
     const resolution = this.chart.options.resolution;
@@ -254,6 +249,11 @@ export class Drawer {
       .domain([this.bottomValue(), this.topValue()])
       .range([chartFrame.y + chartFrame.height, chartFrame.y + TITLE_MARGIN_BOTTOM * resolution]);
   }
+
+  /**
+   * InstallPlugin
+   *
+   */
   private installPlugin() {
     this.options.plugins.forEach((Plugin) => {
       this.plugins.push(new Plugin(this));
@@ -263,9 +263,14 @@ export class Drawer {
     });
     this.useExclusivePlugin(this.options.defaultExclusivePlugins);
   }
+
+  /**
+   * PluginCall
+   *
+   */
   private pluginCall<
-    T extends keyof DrawerPlugin,
-    U extends keyof ExclusiveDrawerPlugin
+    T extends keyof IDrawerPlugin,
+    U extends keyof IExclusiveDrawerPlugin
   >(fnName: U, ...args: any[]) {
     this.plugins.forEach((plugin) =>
       (plugin[fnName] as () => void)
@@ -274,4 +279,3 @@ export class Drawer {
     exp && (exp[fnName] as () => void).apply(exp, args);
   }
 }
-export type DrawerContructor = typeof Drawer;

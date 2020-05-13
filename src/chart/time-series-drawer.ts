@@ -1,17 +1,22 @@
 import { max, min } from 'd3-array';
 import { area } from 'd3-shape';
-import clamp from 'lodash.clamp';
 import uniq from 'lodash.uniq';
 import { formateDate } from '../algorithm/date';
 import { divide } from '../algorithm/divide';
 import { MovableRange } from '../algorithm/range';
 import { drawLine, drawXAxis, drawYAxis } from '../paint-utils/index';
-import { autoResetStyle, Chart, ChartTheme, YAxisDetail } from './chart';
+import { Chart } from './chart';
 import { ChartTitle } from './chart-title';
-import { TimeSeriesData } from './data-structure';
-import { Drawer, DrawerOptions } from './drawer';
+import { Drawer } from './drawer';
 
-export interface TimeSeriesTheme extends ChartTheme {
+import { autoResetStyle } from '../helper/class-decorator';
+
+import { ITimeSeriesData } from '../types/data-structure';
+import { IYAxisDetail } from '../types/chart';
+import { IChartTheme } from '../types/chart-theme';
+import { IDrawerOptions } from '../types/drawer';
+
+export interface TimeSeriesTheme extends IChartTheme {
   TimeSeries: {
     price: string;
     linearGradient: string[];
@@ -42,7 +47,7 @@ export class TimeSeriesDrawer extends Drawer {
   public static precision = 2;
   public theme: TimeSeriesTheme;
   public titleDrawer: ChartTitle;
-  public range: MovableRange<TimeSeriesData>;
+  public range: MovableRange<ITimeSeriesData>;
   public canScale = false;
   public topValue = ((lastTopValue = Number.MIN_VALUE) =>
     () => {
@@ -64,7 +69,7 @@ export class TimeSeriesDrawer extends Drawer {
       return lastBottomValue;
     }
   )();
-  constructor(chart: Chart, options: DrawerOptions) {
+  constructor(chart: Chart, options: IDrawerOptions) {
     super(chart, options);
     this.theme = Object.assign({
       TimeSeries: TimeSeriesBlackTheme,
@@ -91,7 +96,7 @@ export class TimeSeriesDrawer extends Drawer {
   public count() {
     return this.tradeTime.totalMinutes();
   }
-  public setRange(range: MovableRange<TimeSeriesData>) {
+  public setRange(range: MovableRange<ITimeSeriesData>) {
     const data = range.data;
     if (data.length > 0) {
       const merge = [...data.map((d) => d.price), ...data.map((d) => d.avg)];
@@ -120,7 +125,7 @@ export class TimeSeriesDrawer extends Drawer {
     ctx.fillStyle = this.theme.TimeSeries.avg;
     ctx.fill();
   }
-  public getYAxisDetail(y: number): YAxisDetail {
+  public getYAxisDetail(y: number): IYAxisDetail {
     const value = this.yScale.invert(y);
     return {
       left: value.toFixed(2),
@@ -202,7 +207,7 @@ export class TimeSeriesDrawer extends Drawer {
     const { frame } = this;
     const { xScale } = this.chart;
     const { context: ctx, yScale, range } = this;
-    const drawArea = area<TimeSeriesData>()
+    const drawArea = area<ITimeSeriesData>()
       .x((d, i) => xScale(i))
       .y0((d) => yScale(d.price))
       .y1(frame.height - this.xAxisTickHeight)
@@ -218,7 +223,7 @@ export class TimeSeriesDrawer extends Drawer {
     this.drawLine('avg', this.theme.TimeSeries.avg);
   }
   @autoResetStyle()
-  protected drawLine(key: keyof TimeSeriesData, color = 'black') {
+  protected drawLine(key: keyof ITimeSeriesData, color = 'black') {
     const { yScale, context: ctx,  range } = this;
     const { xScale } = this.chart;
     drawLine(

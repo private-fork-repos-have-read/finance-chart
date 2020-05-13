@@ -24,6 +24,10 @@ module.exports = env => {
             },
           ]
         },
+        {
+          test: /\.(jpg|gif|png|svg|ico)$/,
+          loader: 'url-loader?name=images/[name].[ext]'
+        },
       ]
     },
     externals: {

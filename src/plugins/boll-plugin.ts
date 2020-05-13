@@ -1,4 +1,4 @@
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IExclusiveDrawerPlugin, IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
 import { createLinePlugin, DatumColorMap, TitleBarTheme  } from './line-indicator-plugin';
 
 export function createBOLLPlugin(
@@ -17,7 +17,7 @@ export function createBOLLPlugin(
     },
   ],
   dataObjectKey = 'boll',
-): ExclusiveDrawerPluginConstructor {
+): IExclusiveDrawerPluginConstructor {
   return createLinePlugin(
     {
       dataObjectKey,

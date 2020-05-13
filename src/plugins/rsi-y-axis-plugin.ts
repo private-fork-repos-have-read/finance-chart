@@ -1,7 +1,7 @@
-import { DrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IDrawerPluginConstructor } from '../types/drawer-plugin';
 import { createYAxisPlugin } from './y-axis-plugin';
 
-export function createRSIYAxisPlugin(): DrawerPluginConstructor {
+export function createRSIYAxisPlugin(): IDrawerPluginConstructor {
   return class RSIYAxisPlugin extends createYAxisPlugin([30, 50, 70]) {
     public onSetRange() {
       const host = this.pluginHost;

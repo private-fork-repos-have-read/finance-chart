@@ -1,6 +1,6 @@
 import { trimNulls } from '../algorithm/arrays';
 import { ChartTitle } from '../chart/chart-title';
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IExclusiveDrawerPlugin, IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
 import { Drawer } from '../index';
 import { drawLine } from '../paint-utils/index';
 
@@ -21,8 +21,8 @@ export function createLinePlugin(
     lineData: DatumColorMap[],
     detailMapper: (key: string, datum: number, index: number) => string
   },
-): ExclusiveDrawerPluginConstructor {
-  return class LineIndicatorPlugin extends ExclusiveDrawerPlugin {
+): IExclusiveDrawerPluginConstructor {
+  return class LineIndicatorPlugin extends IExclusiveDrawerPlugin {
     public titleDrawer: ChartTitle;
     constructor(protected pluginHost: Drawer) {
       super(pluginHost);

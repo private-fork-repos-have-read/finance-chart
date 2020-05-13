@@ -14,7 +14,10 @@
         "variable-name": false,
         "no-shadowed-variable": false,
         "no-console": false,
-        "object-literal-key-quotes": false
+        "object-literal-key-quotes": false,
+        "ordered-imports": false,
+        "member-ordering": false,
+        "curly": false
     },
     "rulesDirectory": []
 }

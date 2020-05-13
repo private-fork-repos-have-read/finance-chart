@@ -1,10 +1,10 @@
-import { CandleStickData } from '../chart/data-structure';
+import { ICandleStickData } from '../types/data-structure';
 import { MovableRange } from './range';
 
 export function determineCandleColor(
-  current: CandleStickData,
+  current: ICandleStickData,
   currentIndex: number,
-  range: MovableRange<CandleStickData>,
+  range: MovableRange<ICandleStickData>,
 ) {
   if (current.close > current.open) {
     return 1;

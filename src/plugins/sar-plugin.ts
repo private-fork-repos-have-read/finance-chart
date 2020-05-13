@@ -1,9 +1,9 @@
 import { ChartTitle } from '../chart/chart-title';
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
-import { CandleStickData, Drawer } from '../index';
+import { IExclusiveDrawerPlugin, IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
+import { ICandleStickData, Drawer } from '../index';
 
-export function createSARPlugin(color = '#FF8E29', title = 'SAR'): ExclusiveDrawerPluginConstructor {
-  return class SARPlugin extends ExclusiveDrawerPlugin {
+export function createSARPlugin(color = '#FF8E29', title = 'SAR'): IExclusiveDrawerPluginConstructor {
+  return class SARPlugin extends IExclusiveDrawerPlugin {
     public titleDrawer: ChartTitle;
     constructor(protected pluginHost: Drawer) {
       super(pluginHost);
@@ -24,7 +24,7 @@ export function createSARPlugin(color = '#FF8E29', title = 'SAR'): ExclusiveDraw
     public postdraw() {
       const { yScale, range, context } = this.pluginHost;
       const { xScale, options: { resolution }, theme } = this.pluginHost.chart;
-      const visibleData = range.visible() as CandleStickData[];
+      const visibleData = range.visible() as ICandleStickData[];
       const data: number[] = visibleData.map((d) => (d as any).sar.BB);
       const aboveColor = theme.fall;
       const belowColor = theme.rise;
