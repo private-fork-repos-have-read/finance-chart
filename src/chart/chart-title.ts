@@ -1,6 +1,7 @@
-import { Rect } from '../graphic/primitive';
 import { drawText } from '../paint-utils/index';
-import { autoResetStyle } from './chart';
+import { autoResetStyle } from '../helper/class-decorator';
+
+import { IRect } from '../types/drawer';
 
 export class ChartTitle {
   constructor(
@@ -17,7 +18,7 @@ export class ChartTitle {
     this.labels[i].label = label;
   }
   @autoResetStyle()
-  public draw(frame: Rect) {
+  public draw(frame: IRect) {
     const { context: ctx, background, title, titleColor, resolution } = this;
     ctx.fillStyle = background;
     ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
@@ -36,6 +37,8 @@ export class ChartTitle {
       nextX += ctx.measureText(title).width + spacing * 2;
     }
     this.labels.forEach(({ label, color }) => {
+      if (!label) return;
+
       drawText(ctx, label, {
         x: nextX,
         y: frame.y + 6 * resolution,

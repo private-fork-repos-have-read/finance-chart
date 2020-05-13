@@ -1,4 +1,4 @@
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IExclusiveDrawerPlugin, IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
 import { findMaxValue, findMinValue } from '../paint-utils/index';
 import { createLinePlugin, DatumColorMap, TitleBarTheme  } from './line-indicator-plugin';
 
@@ -14,7 +14,7 @@ export function createDMAPlugin(
     },
   ],
   dataObjectKey = 'dma',
-): ExclusiveDrawerPluginConstructor {
+): IExclusiveDrawerPluginConstructor {
   return class DMAPlugin extends createLinePlugin(
     {
       dataObjectKey,

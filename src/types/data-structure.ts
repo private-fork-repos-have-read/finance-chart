@@ -1,8 +1,8 @@
-export interface VolumeData {
+export interface IVolumeData {
   volume: number;
 }
 
-export interface CandleStickData extends VolumeData {
+export interface ICandleStickData extends IVolumeData {
   time: string;
   open: number;
   close: number;
@@ -10,7 +10,7 @@ export interface CandleStickData extends VolumeData {
   low: number;
 }
 
-export interface TimeSeriesData extends VolumeData {
+export interface ITimeSeriesData extends IVolumeData {
   price: number;
   avg: number;
   time: number;

@@ -2,12 +2,12 @@ import 'core-js/modules/es6.object.assign';
 import { ScaleLinear } from 'd3-scale';
 import { line } from 'd3-shape';
 import { PADDING_LEFT, PADDING_RIGHT, TICK_MARGIN } from '../constants/constants';
-import { Point, Rect } from '../graphic/primitive';
+import { IPoint, IRect } from '../types/drawer';
 
-export function drawLine(ctx: CanvasRenderingContext2D, data: Point[], color = 'black', lineWidth = 1) {
+export function drawLine(ctx: CanvasRenderingContext2D, data: IPoint[], color = 'black', lineWidth = 1) {
   ctx.save();
   ctx.beginPath();
-  line<Point>()
+  line<IPoint>()
     .x((d) => d.x)
     .y((d) => d.y)
     .context(ctx)(data);
@@ -25,7 +25,7 @@ export interface TextStyle {
 export function drawText(
   ctx: CanvasRenderingContext2D,
   text: string,
-  position: Point = { x: 0, y: 0 },
+  position: IPoint = { x: 0, y: 0 },
   styles: TextStyle = {},
 ) {
   const defaultStyles = {
@@ -48,7 +48,7 @@ export interface TickValueDescription {
 export function drawYAxis(
   ctx: CanvasRenderingContext2D,
   tickValues: TickValueDescription[],
-  frame: Rect,
+  frame: IRect,
   scale: ScaleLinear<number, number>,
   resolution = 1,
   withLine = true,
@@ -86,7 +86,7 @@ export function drawYAxis(
 export function drawXAxis(
   ctx: CanvasRenderingContext2D,
   tickValues: number[],
-  frame: Rect,
+  frame: IRect,
   scale: ScaleLinear<number, number>,
   resolution = 1,
   withTick = true,

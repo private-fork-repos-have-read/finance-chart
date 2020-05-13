@@ -1,7 +1,7 @@
-import { ExclusiveDrawerPlugin, ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IExclusiveDrawerPlugin, IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
 import { createLinePlugin, DatumColorMap, TitleBarTheme  } from './line-indicator-plugin';
 
-export function createSMAPlugin(lineData: DatumColorMap[]): ExclusiveDrawerPluginConstructor {
+export function createSMAPlugin(lineData: DatumColorMap[]): IExclusiveDrawerPluginConstructor {
   return createLinePlugin(
     {
       dataObjectKey: 'sma',

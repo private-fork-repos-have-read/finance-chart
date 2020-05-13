@@ -5,3 +5,5 @@ yarn-error.log
 example-dist/
 .DS_Store
 /.idea
+
+*.lock

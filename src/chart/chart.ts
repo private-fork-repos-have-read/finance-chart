@@ -1,10 +1,7 @@
 import { ScaleLinear, scaleLinear } from 'd3-scale';
 import detectIt from 'detect-it';
-import jss from 'jss';
-import preset from 'jss-preset-default';
 import clamp from 'lodash.clamp';
 import { MovableRange } from '../algorithm/range';
-import { TradeTimeSegment } from '../algorithm/tradetime';
 import {
   DETAIL_PANEL_WIDTH,
   FRONT_SIGHT_LABEL_HEIGHT,
@@ -15,173 +12,34 @@ import {
   X_AXIS_HEIGHT,
   X_FRONT_SIGHT_LABEL_PADDING,
 } from '../constants/constants';
-import { Point, Rect } from '../graphic/primitive';
-import {
-  Drawer,
-  DrawerContructor,
-  DrawerOptions,
-} from './drawer';
+import sheets from '../css';
+import { Drawer } from './drawer';
 
-jss.setup(preset());
+import { autoResetStyle, shouldRedraw } from '../helper/class-decorator';
+import { chartBlackTheme } from '../theme/black';
 
-const styles = {
-  'finance-chart': {
-    position: 'relative',
-    '& canvas': {
-      '-webkit-tap-highlight-color': 'transparent',
-      'user-select': 'none',
-    },
-  },
-  detail: {
-    boxSizing: 'border-box',
-    position: 'absolute',
-    padding: '8px',
-    width: '120px',
-    background: '#F0F2F2',
-    top: '30px',
-    right: '0',
-    display: 'none',
-    color: '#5E667F',
-    fontSize: '12px',
-  },
-  title: {
-    textAlign: 'center',
-    paddingBottom: 6,
-  },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    '& span': {
-      display: 'inline-block',
-    },
-  },
-};
+import { IPoint, IRect } from '../types/drawer';
+import { IChartOptions, IYAxisDetail } from '../types/chart';
+import { IChartTheme } from '../types/chart-theme';
 
-const { classes } = jss.createStyleSheet(styles).attach();
+const { classes } = sheets;
 
-export interface YAxisDetail {
-  left: string;
-  right?: string;
-}
-
-export interface DrawerConfig {
-  constructor: DrawerContructor;
-  options?: DrawerOptions;
-}
-
-export interface ChartOptions {
-  /**
-   * 用于放置图表的dom节点或dom节点选择器
-   */
-  selector: string | HTMLElement;
-  /**
-   * 昨收价
-   */
-  lastPrice: number;
-  /**
-   * 数据, 数据格式参考demo
-   */
-  data: any[];
-  /**
-   * 金融产品交易时间段
-   */
-  tradeTimes: TradeTimeSegment[];
-  /**
-   * 主图绘图器配置
-   */
-  mainDrawer: DrawerConfig;
-  /**
-   * 主题配置，内置黑白两套主题, 默认使用黑色主题
-   */
-  theme?: ChartTheme;
-  /**
-   * 设备像素比, 通常不需要主动设置
-   * 在性能较差的设备可主动设置为1，提高性能, 降低画面质量
-   */
-  resolution?: number;
-  /**
-   * 默认绘制数据项数量
-   * 例如默认需要绘制50项，即显示50根k线
-   * 分时图绘制数据项数量只取决于交易时间, 忽略此配置
-   */
-  count?: number;
-  /**
-   * 最小绘制数据项数量，控制缩放范围
-   */
-  minCount?: number;
-  /**
-   * 最大绘制数据项数量，控制缩放范围
-   */
-  maxCount?: number;
-  /**
-   * 主图大小屏占比，默认为0.6, 不配置副图时，屏占比为1，即占满绘图区域
-   */
-  mainRatio?: number;
-  /**
-   * 默认选中副图
-   */
-  selectedAuxiliaryDrawer?: number;
-  /**
-   * 副图配置
-   */
-  auxiliaryDrawers?: DrawerConfig[];
-  /**
-   * 查看详情数据委托，返回用于显示的详情数据
-   */
-  detailProvider?:
-    (selectedIndex: number, data: any[]) => {
-      title: string;
-      tables: ChartDetail[]
-    };
-  /**
-   * 加载更多数据委托
-   */
-  onMoreData?:
-    (this: Chart, tep: number) => void | Promise<any[]>;
-}
-
-export interface ChartDetail {
-  name: string;
-  value: string;
-  color: string;
-}
-
-export function autoResetStyle() {
-  // tslint:disable-next-line:only-arrow-functions
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-    const raw = target[propertyKey];
-    descriptor.value = function(this: { context: CanvasRenderingContext2D }) {
-      this.context.save();
-      const r = raw.apply(this, arguments);
-      this.context.restore();
-      return r;
-    };
-    return descriptor;
-  };
-}
-export function shouldRedraw() {
-  // tslint:disable-next-line:only-arrow-functions
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-    const raw = target[propertyKey];
-    descriptor.value = function(this: Chart) {
-      raw.apply(this, arguments);
-      this.drawAtEndOfFrame();
-    };
-    return descriptor;
-  };
-}
-function createOptions(options: ChartOptions) {
+/**
+ * CreateOptins
+ *
+ */
+function createOptions(options: IChartOptions) {
   if (options.mainDrawer) {
     if (!options.auxiliaryDrawers || options.auxiliaryDrawers.length === 0) {
       options.mainRatio = 1;
     }
   }
+
   return Object.assign({}, {
     lastPrice: 0.01,
     data: [],
     tradeTimes: [],
-    theme: ChartBlackTheme,
+    theme: chartBlackTheme,
     resolution: (window.devicePixelRatio || 1),
     count: 50,
     minCount: 10,
@@ -200,62 +58,16 @@ enum InteractiveState {
   Dragging = 1 << 1,
   Srolling = 1 << 2,
 }
-export interface ChartTheme {
-  rise: string;
-  fall: string;
-  gridLine: string;
-  yTick: string;
-  xTick: string;
-  frontSight: string;
-  frontSightLabelBackground: string;
-  background: string;
-  detailColor: string;
-  detailBackground: string;
-  title: string;
-  titleBackground: string;
-  [key: string]: string | object;
-}
-export const ChartWhiteTheme: ChartTheme = {
-  rise: '#F55559',
-  fall: '#7DCE8D',
-  gridLine: '#E7EAEB',
-  yTick: '#5E667F',
-  xTick: '#5E667F',
-  frontSight: '#4B99FB',
-  frontSightLabelBackground: '#E2F1FE',
-  background: '#ffffff',
-  detailColor: '#5E667F',
-  detailBackground: '#F0F2F2',
-  title: '#5E667F',
-  titleBackground: '#F2F4F4',
-};
-export const ChartBlackTheme: ChartTheme = {
-  rise: '#F55559',
-  fall: '#7DCE8D',
-  gridLine: '#282D38',
-  yTick: '#AEB4BE',
-  xTick: '#AEB4BE',
-  frontSight: '#4B99FB',
-  frontSightLabelBackground: '#1D1F23',
-  background: '#1D1F23',
-  detailColor: '#7B7E8D',
-  detailBackground: '#282E36',
-  title: '#AEB4BE',
-  titleBackground: '#22252B',
-};
 
-/**
- * 金融图
- */
 export class Chart {
   /**
    * @property 当前主题配置
    */
-  public theme: ChartTheme;
+  public theme: IChartTheme;
   /**
    * @property 当前图表配置
    */
-  public options: ChartOptions;
+  public options: IChartOptions;
   public requestAnimationFrameId: number = null;
   /**
    * @property 图表界面根节点
@@ -309,7 +121,7 @@ export class Chart {
    * @property 昨收价
    */
   public lastPrice: number;
-  private detailPoint: Point;
+  private detailPoint: IPoint;
   private interactive: InteractiveState = InteractiveState.None;
   private touchTimeoutId: number;
   private lastMouseX: number;
@@ -321,7 +133,7 @@ export class Chart {
   private isFetchingMoreData = false;
   private noMoreData = false;
 
-  constructor(options: ChartOptions) {
+  constructor(options: IChartOptions) {
     this.onWindownResize = this.onWindownResize.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
@@ -332,17 +144,103 @@ export class Chart {
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchMove = this.onTouchMove.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
+    this.resize = this.resize.bind(this);
 
     this.options = createOptions(options);
     this.selectedAuxiliaryDrawer = this.options.selectedAuxiliaryDrawer;
     this.theme = this.options.theme;
     this.lastPrice = this.options.lastPrice;
-    this.resize = this.resize.bind(this);
     this.movableRange = new MovableRange(this.options.data, 0);
     this.create();
     this.setData(this.options.data);
     this._draw();
   }
+
+  /**
+   * ListenEvents
+   *
+   */
+  private listenEvents() {
+    const { canvas } = this;
+    this.detailElement = document.createElement('div');
+    this.detailElement.style.backgroundColor = this.theme.detailBackground;
+    this.detailElement.style.color = this.theme.detailColor;
+    // this.detailElement.className = 'chart-detail';
+    this.detailElement.classList.add(classes.detail);
+    this.rootElement.appendChild(this.detailElement);
+
+    // will be 'hybrid' on android system
+    if (detectIt.deviceType === 'mouseOnly') {
+      canvas.addEventListener('mouseenter', this.onMouseEnter);
+      canvas.addEventListener('mousemove', this.onMouseMove);
+      canvas.addEventListener('mouseleave', this.onMouseLeave);
+      canvas.addEventListener('mousedown', this.onMouseDown);
+      canvas.addEventListener('mouseup', this.onMouseUp);
+      canvas.addEventListener('wheel', this.onWheel);
+    } else {
+      canvas.addEventListener('touchstart', this.onTouchStart);
+      canvas.addEventListener('touchmove', this.onTouchMove);
+      canvas.addEventListener('touchend', this.onTouchEnd);
+    }
+
+    canvas.addEventListener('contextmenu', this.onContextMenu)
+  }
+
+  /**
+   * Create
+   *
+   */
+  private create() {
+    const { options } = this;
+    this.rootElement = (options.selector instanceof HTMLElement)
+        ? options.selector as HTMLElement
+        : document.querySelector(options.selector as string);
+    this.rootElement.classList.add(classes['finance-chart']);
+    this.canvas = document.createElement('canvas');
+    window.addEventListener('resize', this.onWindownResize);
+    this.rootElement.appendChild(this.canvas);
+    this.context = this.canvas.getContext('2d');
+    this.createDrawers();
+    this.listenEvents();
+  }
+
+  /**
+   * CreateDrawers
+   *
+   */
+  private createDrawers() {
+    const { options } = this;
+    const auxiliaryConfig = this.options.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
+
+    // createMainDrawer
+    if (options.mainDrawer) {
+      this.mainDrawer = new options.mainDrawer.constructor(this, options.mainDrawer.options);
+    }
+
+    // createAuxiliaryDrawer
+    if (auxiliaryConfig) {
+      this.auxiliaryDrawer = new auxiliaryConfig.constructor(this, auxiliaryConfig.options);
+    }
+
+    this.movableRange.setVisibleLength(this.mainDrawer.count() || this.options.count);
+    this.resize(false);
+  }
+
+  /**
+   * DestroyDrawer
+   *
+   */
+  private destroyDrawer() {
+    // clear referecne to Chart instance
+    this.mainDrawer.chart = null;
+    this.auxiliaryDrawer = null;
+    this.mainDrawer = null;
+  }
+
+  /**
+   * Resize
+   *
+   */
   public resize(redraw = true) {
     const { options } = this;
     this.width = this.rootElement.clientWidth * options.resolution;
@@ -356,9 +254,38 @@ export class Chart {
     this.resetXScale();
     redraw && this._draw();
   }
+
+  get data() {
+    return this.movableRange.visible();
+  }
+
+  get mainChartY() {
+    return 0;
+  }
+
+  get mainChartHeight() {
+    return this.height * this.options.mainRatio;
+  }
+
+  get auxiliaryChartHeight() {
+    return this.height - this.mainChartHeight;
+  }
+
+  get auxiliaryChartY() {
+    return this.mainChartHeight + 1;
+  }
+
+  /**
+   * The distance of neighbor point
+   */
+  private get neighborDistance() {
+    return this.xScale(2) - this.xScale(1);
+  }
+
   public onWindownResize() {
     this.resize();
   }
+
   /**
    * 更新数据
    * @param data 新数据
@@ -371,12 +298,15 @@ export class Chart {
     }
 
     this.movableRange.setData(data);
+
     if (clean) {
       this.destroyDrawer();
       this.createDrawers();
     }
+
     this.isDirty = true;
   }
+
   /**
    * 移动绘制数据区, 向前移动传入负数，向后移动传入正数
    * 例如，向前移动1项，传入-1
@@ -391,6 +321,13 @@ export class Chart {
       this.getMoreData(step);
     }
   }
+
+  /**
+   * RecenterVisibleArea
+   *
+   * @param centerIndex
+   * @param length
+   */
   @shouldRedraw()
   public recenterVisibleArea(centerIndex: number, length: number) {
     const { minCount, maxCount } = this.options;
@@ -405,6 +342,7 @@ export class Chart {
       }
     }
   }
+
   /**
    * 更新昨收价
    * @param value 昨收价
@@ -413,15 +351,30 @@ export class Chart {
   public setLastPrice(value: number) {
     this.lastPrice = value;
   }
+
+  /**
+   * Count
+   *
+   */
   public count() {
     return this.mainDrawer.count();
   }
+
+  /**
+   * ResetXScale
+   *
+   */
   public resetXScale() {
     const { resolution } = this.options;
     this.xScale = scaleLinear()
       .domain([0, this.count() - 1])
       .range([PADDING_LEFT * resolution, this.width - PADDING_RIGHT * resolution]);
   }
+
+  /**
+   * DrawAtEndOfFrame
+   *
+   */
   public drawAtEndOfFrame() {
     if (!this.requestAnimationFrameId) {
       this.requestAnimationFrameId = requestAnimationFrame(() => {
@@ -429,8 +382,11 @@ export class Chart {
       });
     }
   }
+
   /**
+   * Destroy
    * 销毁图表实例
+   *
    */
   public destroy() {
     this.destroyed = true;
@@ -453,13 +409,17 @@ export class Chart {
 
     this.destroyDrawer();
   }
+
   /**
+   * NextMainExclusivePlugin
    * 切换下一个互斥插件
+   *
    */
   @shouldRedraw()
   public nextMainExclusivePlugin() {
     this.mainDrawer.nextExclusivePlugin();
   }
+
   /**
    * 使用指定互斥插件
    * @param index 序号
@@ -468,6 +428,7 @@ export class Chart {
   public useMainExclusivePlugin(index: number) {
     this.mainDrawer.useExclusivePlugin(index);
   }
+
   /**
    * 切换下一个副图
    */
@@ -479,6 +440,7 @@ export class Chart {
     }
     this.useAuxiliarDrawer((this.selectedAuxiliaryDrawer + 1) % auxiliaryDrawerCount);
   }
+
   /**
    * 切换下一个副图
    * @param index 副图序号
@@ -495,64 +457,7 @@ export class Chart {
     );
     this._resizeAuxiliaryDrawer();
   }
-  get data() {
-    return this.movableRange.visible();
-  }
-  get mainChartY() {
-    return 0;
-  }
-  get mainChartHeight() {
-    return this.height * this.options.mainRatio;
-  }
-  get auxiliaryChartHeight() {
-    return this.height - this.mainChartHeight;
-  }
-  get auxiliaryChartY() {
-    return this.mainChartHeight + 1;
-  }
-  /**
-   * The distance of neighbor point
-   */
-  private get neighborDistance() {
-    return this.xScale(2) - this.xScale(1);
-  }
-  private create() {
-    const { options } = this;
-    this.rootElement = (options.selector instanceof HTMLElement)
-        ? options.selector as HTMLElement
-        : document.querySelector(options.selector as string);
-    this.rootElement.classList.add(classes['finance-chart']);
-    this.canvas = document.createElement('canvas');
-    window.addEventListener('resize', this.onWindownResize);
-    this.rootElement.appendChild(this.canvas);
-    this.context = this.canvas.getContext('2d');
-    this.createDrawers();
-    this.listenEvents();
-  }
-  private createDrawers() {
-    this._createMainDrawer();
-    this._createAuxiliaryDrawer();
-    this.movableRange.setVisibleLength(this.mainDrawer.count() || this.options.count);
-    this.resize(false);
-  }
-  private _createMainDrawer() {
-    const { options } = this;
-    if (options.mainDrawer) {
-      this.mainDrawer = new options.mainDrawer.constructor(this, options.mainDrawer.options);
-    }
-  }
-  private _createAuxiliaryDrawer() {
-    const auxiliaryConfig = this.options.auxiliaryDrawers[this.selectedAuxiliaryDrawer];
-    if (auxiliaryConfig) {
-      this.auxiliaryDrawer = new auxiliaryConfig.constructor(this, auxiliaryConfig.options);
-    }
-  }
-  private destroyDrawer() {
-    // clear referecne to Chart instance
-    this.mainDrawer.chart = null;
-    this.auxiliaryDrawer = null;
-    this.mainDrawer = null;
-  }
+
   @autoResetStyle()
   private drawFrontSight() {
     const { context: ctx } = this;
@@ -575,7 +480,7 @@ export class Chart {
       ctx.setLineDash([2, 5, 15, 5]);
     }
     ctx.stroke();
-    let yAxisDetail: YAxisDetail;
+    let yAxisDetail: IYAxisDetail;
     if (y <= this.mainChartHeight) {
       yAxisDetail = this.mainDrawer.getYAxisDetail(y);
     } else {
@@ -611,7 +516,7 @@ export class Chart {
     if (yAxisDetail.left) {
       const textWidth = ctx.measureText(yAxisDetail.left).width;
       ctx.textAlign = 'left';
-      const rect: Rect = {
+      const rect: IRect = {
         x: PADDING_LEFT * resolution,
         y: clampY,
         width: textWidth + TICK_MARGIN * 2 * resolution,
@@ -627,7 +532,7 @@ export class Chart {
       const textWidth = ctx.measureText(yAxisDetail.right).width;
       ctx.textAlign = 'right';
       const w = textWidth + TICK_MARGIN * 2 * resolution;
-      const rect: Rect = {
+      const rect: IRect = {
         x: this.width - w - PADDING_RIGHT * resolution,
         y: clampY,
         width: w,
@@ -641,29 +546,7 @@ export class Chart {
     }
     typeof this.options.detailProvider === 'function' && this.drawDetail();
   }
-  private listenEvents() {
-    const { canvas } = this;
-    this.detailElement = document.createElement('div');
-    this.detailElement.style.backgroundColor = this.theme.detailBackground;
-    this.detailElement.style.color = this.theme.detailColor;
-    // this.detailElement.className = 'chart-detail';
-    this.detailElement.classList.add(classes.detail);
-    this.rootElement.appendChild(this.detailElement);
-    canvas.addEventListener('contextmenu', this.onContextMenu);
-    // will be 'hybrid' on android system
-    if (detectIt.deviceType === 'mouseOnly') {
-      canvas.addEventListener('mouseenter', this.onMouseEnter);
-      canvas.addEventListener('mousemove', this.onMouseMove);
-      canvas.addEventListener('mouseleave', this.onMouseLeave);
-      canvas.addEventListener('mousedown', this.onMouseDown);
-      canvas.addEventListener('mouseup', this.onMouseUp);
-      canvas.addEventListener('wheel', this.onWheel);
-    } else {
-      canvas.addEventListener('touchstart', this.onTouchStart);
-      canvas.addEventListener('touchmove', this.onTouchMove);
-      canvas.addEventListener('touchend', this.onTouchEnd);
-    }
-  }
+
   private onTouchStart(e: TouchEvent) {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const { clientX, clientY } = e.touches[0];
@@ -681,6 +564,11 @@ export class Chart {
       }, 200);
     }
   }
+
+  /**
+   * OnPinch
+   *
+   */
   private onPinch(e: TouchEvent) {
     if (this.mainDrawer.canScale) {
       e.preventDefault();
@@ -706,6 +594,11 @@ export class Chart {
       this.lastPinchDistance = distance;
     }
   }
+
+  /**
+   * OnScale
+   *
+   */
   private onScale(anchorX: number, count: number) {
     const width = this.neighborDistance;
     const centerIndex = Math.round(this.xScale.invert(anchorX));
@@ -714,6 +607,11 @@ export class Chart {
     this.isDirty = true;
     this.hasScale %= width;
   }
+
+  /**
+   * OnTouchMove
+   *
+   */
   private onTouchMove(e: TouchEvent) {
     const { clientX, clientY } = e.touches[0];
     if (e.touches.length === 2) {
@@ -738,11 +636,21 @@ export class Chart {
       }
     }
   }
+
+  /**
+   * OnDrag
+   *
+   */
   private onDrag(clientX: number) {
     const distance = clientX - this.lastMouseX;
     this.lastMouseX = clientX;
     this.drag(distance);
   }
+
+  /**
+   * OnTouchEnd
+   *
+   */
   private onTouchEnd(e: TouchEvent) {
     this.clearTouchTimeout();
     this.hideDetail();
@@ -753,22 +661,47 @@ export class Chart {
     this.hasScale = 0;
     this.lastPinchDistance = 0;
   }
+
+  /**
+   * ClearTouchTimeout
+   *
+   */
   private clearTouchTimeout() {
     if (this.touchTimeoutId) {
       clearTimeout(this.touchTimeoutId);
     }
     this.touchTimeoutId = null;
   }
+
+  /**
+   * OnMouseDown
+   *
+   */
   private onMouseDown(e: MouseEvent) {
     this.interactive |= InteractiveState.Dragging;
     this.lastMouseX = e.clientX;
   }
+
+  /**
+   * OnMouseUp
+   *
+   */
   private onMouseUp(e: MouseEvent) {
     this.interactive &= ~InteractiveState.Dragging;
   }
+
+  /**
+   * OnContextMenu
+   *
+   */
   private onContextMenu(e: MouseEvent) {
     e.preventDefault();
   }
+
+  /**
+   * OnMouseEnter
+   *
+   */
   private onMouseEnter(e: MouseEvent) {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     this.showDetail(
@@ -776,6 +709,11 @@ export class Chart {
       e.clientY - rect.top,
     );
   }
+
+  /**
+   * OnMouseMove
+   *
+   */
   private onMouseMove(e: MouseEvent) {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const clientX = e.clientX;
@@ -787,10 +725,20 @@ export class Chart {
       e.clientY - rect.top,
     );
   }
+
+  /**
+   * OnMouseLeave
+   *
+   */
   private onMouseLeave() {
     this.hideDetail();
     this.interactive &= ~InteractiveState.Dragging;
   }
+
+  /**
+   * OnWheel
+   *
+   */
   @shouldRedraw()
   private onWheel(e: WheelEvent) {
     if (this.mainDrawer.canScale) {
@@ -809,6 +757,11 @@ export class Chart {
       }
     }
   }
+
+  /**
+   * ShowDetail
+   *
+   */
   @shouldRedraw()
   private showDetail(x: number, y: number) {
     if (typeof this.options.detailProvider !== 'function') { return; }
@@ -839,13 +792,28 @@ export class Chart {
       this.detailElement.style.right = `${PADDING_RIGHT}px`;
     }
   }
+
+  /**
+   * DetailAt
+   *
+   */
   private detailAt(i: number) {
     this.forEachVisibleDrawer((drawer) => drawer.select(i));
   }
+
+  /**
+   * ForEachVisibleDrawer
+   *
+   */
   private forEachVisibleDrawer(action: (drawer: Drawer) => void) {
     this.mainDrawer && action(this.mainDrawer);
     this.auxiliaryDrawer && action(this.auxiliaryDrawer);
   }
+
+  /**
+   * ClampSelectedIndex
+   *
+   */
   private clampSelectedIndex() {
     return clamp(
       Math.round(this.xScale.invert(this.detailPoint.x)),
@@ -853,6 +821,11 @@ export class Chart {
       this.data.length - 1,
     );
   }
+
+  /**
+   * DrawDetail
+   *
+   */
   private drawDetail() {
     const xScale = this.xScale.clamp(true);
     const detailIndex = Math.min(
@@ -880,12 +853,22 @@ export class Chart {
     this.detailElement.innerHTML = '';
     this.detailElement.appendChild(fragment);
   }
+
+  /**
+   * HideDetail
+   *
+   */
   @shouldRedraw()
   private hideDetail() {
     this.interactive &= ~InteractiveState.ShowDetail;
     this.detailElement.style.display = 'none';
     this.detailAt(null);
   }
+
+  /**
+   * _draw
+   *
+   */
   private _draw() {
     try {
       if (this.isDirty) {
@@ -893,6 +876,7 @@ export class Chart {
         this.auxiliaryDrawer && this.auxiliaryDrawer.setRange(this.movableRange);
         this.isDirty = false;
       }
+
       this.context.clearRect(0, 0, this.width, this.height);
       // if (process.env.NODE_ENV === 'development') {
       //   console.time('rendering cost');
@@ -915,6 +899,11 @@ export class Chart {
       console.error(e);
     }
   }
+
+  /**
+   * _resizeMainDrawer
+   *
+   */
   private _resizeMainDrawer() {
     this.mainDrawer && this.mainDrawer.resize({
       x: 0,
@@ -923,6 +912,11 @@ export class Chart {
       height: this.mainChartHeight,
     });
   }
+
+  /**
+   * _resizeAuxiliaryDrawer
+   *
+   */
   private _resizeAuxiliaryDrawer() {
     this.auxiliaryDrawer && this.auxiliaryDrawer.resize({
       x: 0,
@@ -931,6 +925,11 @@ export class Chart {
       height: this.auxiliaryChartHeight,
     });
   }
+
+  /**
+   * Drag
+   *
+   */
   private drag(distance: number) {
     const dist = distance * this.options.resolution;
     this.hasMoved += dist;
@@ -943,6 +942,11 @@ export class Chart {
       this.move(-count);
     }
   }
+
+  /**
+   * GetMoreData
+   *
+   */
   private getMoreData(step: number) {
     const promise = this.options.onMoreData.call(this, step);
     this.isFetchingMoreData = true;

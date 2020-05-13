@@ -4,17 +4,18 @@ import { formateDate } from '../algorithm/date';
 import { divide } from '../algorithm/divide';
 import { MovableRange } from '../algorithm/range';
 import { drawXAxis } from '../paint-utils/index';
-import {
-  autoResetStyle,
-  Chart,
-  YAxisDetail,
-} from './chart';
-import { CandleStickData } from './data-structure';
-import { Drawer, DrawerOptions } from './drawer';
+import { Chart } from './chart';
+import { Drawer } from './drawer';
+
+import { autoResetStyle } from '../helper/class-decorator';
+
+import { IYAxisDetail } from '../types/chart';
+import { IDrawerOptions } from '../types/drawer';
+import { ICandleStickData } from '../types/data-structure';
 
 export class CandleStickDrawer extends Drawer {
-  public range: MovableRange<CandleStickData>;
-  constructor(chart: Chart, options: DrawerOptions) {
+  public range: MovableRange<ICandleStickData>;
+  constructor(chart: Chart, options: IDrawerOptions) {
     super(chart, options);
     this.xTickFormatter = this.xTickFormatter.bind(this);
     this.context = chart.context;
@@ -28,7 +29,7 @@ export class CandleStickDrawer extends Drawer {
   public bottomValue = () => {
     return this.minValue - (this.minValue * 0.01);
   }
-  public setRange(range: MovableRange<CandleStickData>) {
+  public setRange(range: MovableRange<ICandleStickData>) {
     const data = range.visible();
     if (data.length > 0) {
       const keys: Array<'low'|'high'> = ['low', 'high'];
@@ -52,7 +53,7 @@ export class CandleStickDrawer extends Drawer {
     }
     super.setRange(range);
   }
-  public getYAxisDetail(y: number): YAxisDetail {
+  public getYAxisDetail(y: number): IYAxisDetail {
     return {
       left: this.yScale.invert(y).toFixed(2),
     };
@@ -82,7 +83,7 @@ export class CandleStickDrawer extends Drawer {
       this.chart.theme.xTick,
     );
   }
-  protected xTickFormatter(i: number, data: CandleStickData[]) {
+  protected xTickFormatter(i: number, data: ICandleStickData[]) {
     const d = data[i];
     if (d) {
       return formateDate(d.time, this.xTickFormat());
@@ -92,7 +93,7 @@ export class CandleStickDrawer extends Drawer {
   protected xTickFormat() {
     return 'yyyy/MM';
   }
-  protected xTickDetailFormatter(i: number, data: CandleStickData[]) {
+  protected xTickDetailFormatter(i: number, data: ICandleStickData[]) {
     const d = data[i];
     if (d) {
       return formateDate(data[i].time, this.xTickDetailFormat());

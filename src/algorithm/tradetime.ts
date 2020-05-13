@@ -1,8 +1,7 @@
-export interface TradeTimeSegment {
-  open: number; close: number;
-}
+import { ITradeTimeSegment } from '../types/trade';
+
 export class TradeTime {
-  constructor(private tradeTimes: TradeTimeSegment[]) {
+  constructor(private tradeTimes: ITradeTimeSegment[]) {
   }
   public getMinute(fromIndex: number) {
     if (fromIndex < 0) {

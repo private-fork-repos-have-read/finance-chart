@@ -37,12 +37,12 @@ function createTimeSeries() {
     data: MOCK_TIME_SHARE,
     tradeTimes: [
       {
-          open: 90,
-          close: 210,
+        open: 90,
+        close: 210,
       },
       {
-          open: 300,
-          close: 421,
+        open: 300,
+        close: 421,
       },
     ],
     mainDrawer: {
@@ -90,6 +90,7 @@ function createTimeSeries() {
   }
   autoUpdateTimeSeries();
 }
+
 function createKLine() {
   const klineChart = (window as any).klineChart = new Chart({
     selector: '#candle-stick',
@@ -152,8 +153,17 @@ function createKLine() {
         ],
       },
     },
-    selectedAuxiliaryDrawer: 3,
+    selectedAuxiliaryDrawer: 0,
     auxiliaryDrawers: [
+      {
+        constructor: Drawer,
+        options: {
+          plugins: [
+            createKDJYAxisPlugin(),
+          ],
+          exclusivePlugins: [],
+        },
+      },
       {
         constructor: Drawer,
         options: {
@@ -216,7 +226,7 @@ function createKLine() {
       },
     ],
     detailProvider: (i, data) => {
-      const WEEK_DAY_MAP: { [index: number]: string} = {
+      const WEEK_DAY_MAP: { [index: number]: string } = {
         0: '周日',
         1: '周一',
         2: '周二',
@@ -256,5 +266,5 @@ function createKLine() {
       klineChart.setData(data);
     });
 }
-createTimeSeries();
+// createTimeSeries();
 createKLine();

@@ -1,4 +1,4 @@
-import { ExclusiveDrawerPluginConstructor } from '../chart/drawer-plugin';
+import { IExclusiveDrawerPluginConstructor } from '../types/drawer-plugin';
 import { findMaxValue, findMinValue } from '../paint-utils/index';
 import { createLinePlugin, DatumColorMap } from './line-indicator-plugin';
 
@@ -18,7 +18,7 @@ export function createKDJPlugin(
     },
   ],
   dataObjectKey = 'kdj',
-): ExclusiveDrawerPluginConstructor {
+): IExclusiveDrawerPluginConstructor {
   return class KDJPlugin extends createLinePlugin(
     {
       dataObjectKey,
