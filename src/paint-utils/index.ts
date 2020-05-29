@@ -122,9 +122,9 @@ export function drawXAxis(
 }
 
 export function findMinValue(arr: number[]) {
-  return Math.min.apply(null, arr.filter((i) => i !== undefined));
+  return Math.min.apply(null, arr.filter((i) => i || +i === 0));
 }
 
 export function findMaxValue(arr: number[]) {
-  return  Math.max.apply(null, arr.filter((i) => i !== undefined));
+  return  Math.max.apply(null, arr.filter((i) => i || +i === 0));
 }

@@ -50,12 +50,8 @@ export function createDZMainCustomPlugin(
       const { xScale } = chart;
 
       config.dataDescriptor.forEach(({ LName, LColor, LThick = 1, LType, EData }: any) => {
-        // console.log(range.visible());
         const data = range.visible().map((d) => (d as any)[config.dataObjKey][LName]);
         const trimed = trimNulls(data);
-
-        // console.log(data);
-        // console.log(config, '<-- config');
 
         ctx.save();
         switch (+LType) {
