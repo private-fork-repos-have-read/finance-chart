@@ -120,7 +120,7 @@ export function createDZMainCustomPlugin(
 
             data.forEach((item, index) => {
               if (item) {
-                ctx.drawImage(imgDom, xScale(index), yScale(item), 14, 14);
+                ctx.drawImage(imgDom, xScale(index), yScale(item), 20, 20);
               }
             });
 
@@ -138,6 +138,7 @@ export function createDZMainCustomPlugin(
                   },
                   {
                     color: LColor,
+                    font: '16px serif',
                   },
                 );
               }
