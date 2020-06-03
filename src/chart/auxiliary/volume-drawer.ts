@@ -67,7 +67,7 @@ const volumeLabel = (v: number) => {
 /**
  * Volume chart drawer
  */
-export class VolumeDrawer extends Drawer {
+export abstract class VolumeDrawer extends Drawer {
   public static proportion = 100;
   public static unit = '手';
   public theme: VolumeTheme;
@@ -95,9 +95,7 @@ export class VolumeDrawer extends Drawer {
     );
   }
 
-  public calcDeltaPrice(currentValue: object, currentIndex: number, data: object[]): number {
-    return 1;
-  }
+  protected abstract calcDeltaPrice(currentValue: object, currentIndex: number, data: object[]): number;
 
   public setRange(range: MovableRange<IVolumeData>) {
     const data = range.visible();
@@ -106,7 +104,9 @@ export class VolumeDrawer extends Drawer {
     } else {
       this.maxValue = 1000 * VolumeDrawer.proportion;
     }
+
     this.minValue = 0;
+
     super.setRange(range);
   }
 
@@ -118,6 +118,7 @@ export class VolumeDrawer extends Drawer {
 
   protected draw() {
     const data = this.range.visible();
+
     this.drawAxes();
     this.drawTitle(this.selectedIndex || data.length - 1);
     this.drawVolumes();
@@ -162,6 +163,7 @@ export class VolumeDrawer extends Drawer {
     const data = range.visible();
     data.forEach((d, i) => {
       const deltaPrice = this.calcDeltaPrice(d, i, data);
+
       if (deltaPrice > 0) {
         ctx.fillStyle = this.theme.rise;
       } else if (deltaPrice < 0) {

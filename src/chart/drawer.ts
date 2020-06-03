@@ -189,14 +189,28 @@ export class Drawer {
    * 绘图区间数据最大值，比实际数据最大值略大
    */
   public topValue = () => {
-    const extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
+    let extra;
+
+    if (this.maxValue === 0) {
+      extra = Math.abs(this.maxValue * 0.01);
+    } else {
+      extra = clamp(Math.abs(this.maxValue * 0.01), 0.05, 2.5);
+    }
+
     return this.maxValue + extra;
   }
   /**
    * 绘图区间数据最小值，比实际数据最小值略小
    */
   public bottomValue = () => {
-    const extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
+    let extra;
+
+    if (this.minValue === 0) {
+      extra = Math.abs(this.minValue * 0.01);
+    } else {
+      extra = clamp(Math.abs(this.minValue * 0.01), 0.05, 2.5);
+    }
+
     return this.minValue - extra;
   }
   /**

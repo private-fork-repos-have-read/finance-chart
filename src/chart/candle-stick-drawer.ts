@@ -3,7 +3,7 @@ import { determineCandleColor } from '../algorithm/color';
 import { formateDate } from '../algorithm/date';
 import { divide } from '../algorithm/divide';
 import { MovableRange } from '../algorithm/range';
-import { drawXAxis } from '../paint-utils/index';
+import { drawXAxis, drawText } from '../paint-utils/index';
 import { Chart } from './chart';
 import { Drawer } from './drawer';
 
@@ -14,6 +14,8 @@ import { IDrawerOptions } from '../types/drawer';
 import { ICandleStickData } from '../types/data-structure';
 
 export class CandleStickDrawer extends Drawer {
+  public static precision = 2;
+
   public range: MovableRange<ICandleStickData>;
   constructor(chart: Chart, options: IDrawerOptions) {
     super(chart, options);
@@ -111,9 +113,27 @@ export class CandleStickDrawer extends Drawer {
     const { xScale } = this.chart;
     const { context: ctx, yScale, range } = this;
     const { resolution } = this.chart.options;
+
+    let visibleMaxValue: number;
+    let visibleMaxValueIndex = 0;
+
+    let visibleMinValue: number;
+    let visibleMinValueIndex = 0;
+
     range.visible().forEach((d, i) => {
       const maxV = Math.max(d.close, d.open);
       const minV = Math.min(d.close, d.open);
+
+      if (!visibleMaxValue || maxV > visibleMaxValue) {
+        visibleMaxValue = maxV;
+        visibleMaxValueIndex = i;
+      }
+
+      if (!visibleMinValue || minV < visibleMinValue) {
+        visibleMinValue = minV;
+        visibleMinValueIndex = i;
+      }
+
       const y = yScale(maxV);
       const height = Math.max(
               Math.abs(yScale(d.close) - yScale(d.open)), 1 * resolution,
@@ -128,5 +148,19 @@ export class CandleStickDrawer extends Drawer {
       ctx.fillRect(x + width / 2 - lineWidth / 2, yScale(d.high), lineWidth, yScale(maxV) - yScale(d.high));
       ctx.fillRect(x + width / 2 - lineWidth / 2, yScale(minV), lineWidth, yScale(d.low) - yScale(minV));
     });
+
+    if (visibleMaxValue) {
+      drawText(
+        ctx,
+        visibleMaxValue.toFixed(CandleStickDrawer.precision),
+        { x: xScale(visibleMaxValueIndex), y: yScale(visibleMaxValue) },
+        {
+          font: '20px serif',
+          color: this.chart.theme.frontSight,
+        },
+      );
+    }
+    console.log(visibleMaxValue, visibleMaxValueIndex);
+    console.log(visibleMinValue, visibleMinValueIndex);
   }
 }

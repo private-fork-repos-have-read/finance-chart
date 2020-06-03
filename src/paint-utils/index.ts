@@ -20,6 +20,8 @@ export function drawLine(ctx: CanvasRenderingContext2D, data: IPoint[], color = 
 export interface TextStyle {
   font?: string;
   color?: string;
+  textAlign?: string;
+  textBaseline?: string;
 }
 
 export function drawText(
@@ -31,11 +33,13 @@ export function drawText(
   const defaultStyles = {
     font: '11px serif',
     color: 'black',
+    textAlign: 'left',
+    textBaseline: 'top',
   };
   const mergeStyles = Object.assign({}, defaultStyles, styles);
   ctx.save();
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = mergeStyles.textAlign;
+  ctx.textBaseline = mergeStyles.textBaseline;
   ctx.font = mergeStyles.font;
   ctx.fillStyle = mergeStyles.color;
   ctx.fillText(text, position.x, position.y);

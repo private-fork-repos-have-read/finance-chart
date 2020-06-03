@@ -86,7 +86,8 @@ function createTimeSeries() {
       holdAmount: Math.round(last.holdAmount * (Math.random() * 0.6 - 0.3 + 1)),
     };
     MOCK_TIME_SHARE.push(next);
-    TimeSeriesChart.setData(MOCK_TIME_SHARE);
+
+    TimeSeriesChart.setData(MOCK_TIME_SHARE.map((item) => ({ ...item, volume: 0, holdAmount: 0 })));
   }
   autoUpdateTimeSeries();
 }
