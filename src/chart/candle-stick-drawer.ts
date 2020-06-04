@@ -124,13 +124,13 @@ export class CandleStickDrawer extends Drawer {
       const maxV = Math.max(d.close, d.open);
       const minV = Math.min(d.close, d.open);
 
-      if (!visibleMaxValue || maxV > visibleMaxValue) {
-        visibleMaxValue = maxV;
+      if (!visibleMaxValue || d.high > visibleMaxValue) {
+        visibleMaxValue = d.high;
         visibleMaxValueIndex = i;
       }
 
-      if (!visibleMinValue || minV < visibleMinValue) {
-        visibleMinValue = minV;
+      if (!visibleMinValue || d.low < visibleMinValue) {
+        visibleMinValue = d.low;
         visibleMinValueIndex = i;
       }
 
@@ -150,17 +150,47 @@ export class CandleStickDrawer extends Drawer {
     });
 
     if (visibleMaxValue) {
+      const text = visibleMaxValue.toFixed(CandleStickDrawer.precision);
+      let arrowText = ` ← ${text}`;
+      const x = xScale(visibleMaxValueIndex);
+      const isOverflow = ctx.measureText(arrowText).width > x;
+
+      arrowText = isOverflow ? ` ← ${text}` : `${text} → `;
+      const textAlign = isOverflow ? 'left' : 'right';
+
       drawText(
         ctx,
-        visibleMaxValue.toFixed(CandleStickDrawer.precision),
-        { x: xScale(visibleMaxValueIndex), y: yScale(visibleMaxValue) },
+        arrowText,
+        { x, y: yScale(visibleMaxValue) },
         {
-          font: '20px serif',
-          color: this.chart.theme.frontSight,
+          font: '13px serif',
+          fillStyle: this.chart.theme.minColor,
+          textAlign,
+          textBaseline: 'middle',
         },
       );
     }
-    console.log(visibleMaxValue, visibleMaxValueIndex);
-    console.log(visibleMinValue, visibleMinValueIndex);
+
+    if (visibleMinValue) {
+      const text = visibleMinValue.toFixed(CandleStickDrawer.precision);
+      let arrowText = `${text} → `;
+      const x = xScale(visibleMinValueIndex);
+      const isOverflow = ctx.measureText(arrowText).width > (xScale(range.visible().length - 1) - x);
+
+      arrowText = isOverflow ? `${text} → ` : ` ← ${text}`;
+      const textAlign = isOverflow ? 'right' : 'left';
+
+      drawText(
+        ctx,
+        arrowText,
+        { x, y: yScale(visibleMinValue) },
+        {
+          font: '13px serif',
+          fillStyle: this.chart.theme.maxColor,
+          textAlign,
+          textBaseline: 'middle',
+        },
+      );
+    }
   }
 }

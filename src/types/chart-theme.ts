@@ -11,5 +11,7 @@ export interface IChartTheme {
   detailBackground: string;
   title: string;
   titleBackground: string;
+  minColor?: string;
+  maxColor?: string;
   [key: string]: string | object;
 }

@@ -32,7 +32,7 @@ export class ChartTitle {
         y: frame.y + 6 * resolution,
       }, {
         font,
-        color: titleColor,
+        fillStyle: titleColor,
       });
       nextX += ctx.measureText(title).width + spacing * 2;
     }
@@ -44,7 +44,7 @@ export class ChartTitle {
         y: frame.y + 6 * resolution,
       }, {
         font,
-        color,
+        fillStyle: color,
       });
       nextX += ctx.measureText(label).width + spacing;
     });

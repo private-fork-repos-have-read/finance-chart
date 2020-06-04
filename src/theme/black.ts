@@ -13,4 +13,6 @@ export const chartBlackTheme: IChartTheme = {
   detailBackground: '#282E36',
   title: '#AEB4BE',
   titleBackground: '#22252B',
+  minColor: '#fff',
+  maxColor: '#fff',
 };

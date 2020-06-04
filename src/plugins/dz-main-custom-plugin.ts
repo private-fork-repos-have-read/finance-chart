@@ -137,7 +137,7 @@ export function createDZMainCustomPlugin(
                     y: yScale(item),
                   },
                   {
-                    color: LColor,
+                    fillStyle: LColor,
                     font: '16px serif',
                   },
                 );
