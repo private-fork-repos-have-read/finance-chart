@@ -44,6 +44,7 @@ export function createLinePlugin(
       const { xScale } = this.pluginHost.chart;
       config.lineData.forEach(({key, color}) => {
         const data = range.visible().map((d) => (d as any)[config.dataObjectKey][key]);
+
         const trimed = trimNulls(data);
         drawLine(
           this.pluginHost.context,
@@ -59,6 +60,7 @@ export function createLinePlugin(
         this.pluginHost.selectedIndex || this.pluginHost.range.visible().length - 1,
       );
     }
+
     protected drawTitle(i: number) {
       const { context: ctx, frame, range } = this.pluginHost;
       const data = range.visible();

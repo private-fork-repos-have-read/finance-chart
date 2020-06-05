@@ -21,7 +21,7 @@ export function createBOLLPlugin(
   return createLinePlugin(
     {
       dataObjectKey,
-      title: 'BOLL(20,2)',
+      title: 'BOLL(40,2)',
       lineData,
       detailMapper(key, datum, i) {
         return `${key.toUpperCase()}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
