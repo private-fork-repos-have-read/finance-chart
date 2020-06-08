@@ -7,8 +7,8 @@ export function createMAPlugin(lineData: DatumColorMap[], dataObjectKey = 'ma'):
       dataObjectKey,
       title: 'MA',
       lineData,
-      detailMapper(key, datum, i) {
-        return `MA${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
+      detailMapper(key, datum, i, precision = 2) {
+        return `MA${key}: ${datum === 0 ? 0 : datum.toFixed(precision)}`;
       },
     },
   );

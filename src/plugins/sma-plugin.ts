@@ -7,8 +7,8 @@ export function createSMAPlugin(lineData: DatumColorMap[]): IExclusiveDrawerPlug
       dataObjectKey: 'sma',
       title: 'SMA',
       lineData,
-      detailMapper(key, datum, i) {
-        return `SMA ${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
+      detailMapper(key, datum, i, precision = 2) {
+        return `SMA ${key}: ${datum === 0 ? 0 : datum.toFixed(precision)}`;
       },
     },
   );

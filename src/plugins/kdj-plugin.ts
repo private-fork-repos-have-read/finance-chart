@@ -24,8 +24,8 @@ export function createKDJPlugin(
       dataObjectKey,
       title: 'KDJ',
       lineData,
-      detailMapper(key, datum, i) {
-        return `${key.toUpperCase()}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
+      detailMapper(key, datum, i, precision = 2) {
+        return `${key.toUpperCase()}: ${datum === 0 ? 0 : datum.toFixed(precision)}`;
       },
     },
   ) {

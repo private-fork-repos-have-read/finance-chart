@@ -7,6 +7,7 @@ import { drawLine } from '../paint-utils/index';
 export interface DatumColorMap {
   key: string;
   color: string;
+  precision?: number;
 }
 
 export interface TitleBarTheme {
@@ -19,7 +20,7 @@ export function createLinePlugin(
     dataObjectKey: string,
     title: string;
     lineData: DatumColorMap[],
-    detailMapper: (key: string, datum: number, index: number) => string
+    detailMapper: (key: string, datum: number, index: number, precision: number) => string
   },
 ): IExclusiveDrawerPluginConstructor {
   return class LineIndicatorPlugin extends IExclusiveDrawerPlugin {
@@ -30,8 +31,8 @@ export function createLinePlugin(
       this.titleDrawer = new ChartTitle(
         this.pluginHost.context,
         config.title,
-        config.lineData.map(({key, color}, i) => ({
-          label: config.detailMapper(key, 0, i),
+        config.lineData.map(({key, color, precision }, i) => ({
+          label: config.detailMapper(key, 0, i, precision),
           color,
         })),
         theme.titleBackground,
@@ -66,9 +67,9 @@ export function createLinePlugin(
       const data = range.visible();
       const d = data[i];
       if (data.length > 0) {
-        config.lineData.forEach(({ key }, i) => {
+        config.lineData.forEach(({ key, precision }, i) => {
           const n = (d as any)[config.dataObjectKey][key] || 0;
-          this.titleDrawer.setLabel(i, config.detailMapper(key, n, i));
+          this.titleDrawer.setLabel(i, config.detailMapper(key, n, i, precision));
         });
         ctx.clearRect(0, frame.y, frame.width, this.pluginHost.titleHeight);
         this.titleDrawer.draw({

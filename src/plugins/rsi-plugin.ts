@@ -24,8 +24,8 @@ export function createRSIPlugin(
       dataObjectKey,
       title: 'RSI',
       lineData,
-      detailMapper(key, datum, i) {
-        return `RSI${key}: ${datum === 0 ? 0 : datum.toFixed(2)}`;
+      detailMapper(key, datum, i, precision = 2) {
+        return `RSI${key}: ${datum === 0 ? 0 : datum.toFixed(precision)}`;
       },
     },
   ) {
