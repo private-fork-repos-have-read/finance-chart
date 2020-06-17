@@ -6,5 +6,5 @@ const exampleConfig = require('./webpack.example')();
 serve({
   config: path.resolve(__dirname, './webpack.example.js'),
   content: './online',
-  host: ip.address()
+  host: ip.address(),
 });

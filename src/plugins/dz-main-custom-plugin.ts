@@ -44,7 +44,7 @@ export function createDZMainCustomPlugin(
       );
     }
 
-    public postdraw() {
+    public draw() {
       const { context: ctx, yScale, range, chartFrame } = this.pluginHost;
       const { chart } = this.pluginHost;
       const { xScale } = chart;
@@ -96,7 +96,11 @@ export function createDZMainCustomPlugin(
               const x = xScale(i);
               const y = yScale(d[1]);
               let width = xScale(1) - xScale(0);
-              width -= width * 0.2;
+
+              // 狙击手连续画
+              if (!(LName.includes('sniper'))) {
+                width -= width * 0.2;
+              }
 
               if (isFill) {
                 ctx.fillStyle = LColor;
