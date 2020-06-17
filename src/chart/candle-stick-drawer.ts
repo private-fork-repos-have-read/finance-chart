@@ -141,9 +141,17 @@ export class CandleStickDrawer extends Drawer {
       let width = xScale(1) - xScale(0);
       width -= width * 0.2;
       const x = xScale(i) - width / 2;
-      ctx.fillStyle = determineCandleColor(d, i, range) > 0 ?
-        this.chart.theme.rise : this.chart.theme.fall;
-      ctx.fillRect(x, y, width, height);
+      const isRise = determineCandleColor(d, i, range) > 0;
+
+      ctx.fillStyle = isRise ? this.chart.theme.rise : this.chart.theme.fall;
+      ctx.strokeStyle = isRise ? this.chart.theme.rise : this.chart.theme.fall;
+
+      if (isRise) {
+        ctx.strokeRect(x, y, width, height);
+      } else {
+        ctx.fillRect(x, y, width, height);
+      }
+
       const lineWidth = 1 * resolution;
       ctx.fillRect(x + width / 2 - lineWidth / 2, yScale(d.high), lineWidth, yScale(maxV) - yScale(d.high));
       ctx.fillRect(x + width / 2 - lineWidth / 2, yScale(minV), lineWidth, yScale(d.low) - yScale(minV));
