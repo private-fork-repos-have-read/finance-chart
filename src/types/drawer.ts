@@ -29,4 +29,5 @@ export interface IRect {
 export interface IPoint {
   x: number;
   y: number;
+  defined?: boolean;
 }

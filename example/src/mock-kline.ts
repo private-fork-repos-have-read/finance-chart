@@ -4437,8 +4437,8 @@ export default [
     },
     "boll": {
       "mid": 11.342,
-      "upper": 11.801145,
-      "lower": 10.882855
+      "upper": null,
+      "lower": null
     },
     "ema": {
       "12": 11.363573,

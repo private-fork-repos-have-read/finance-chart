@@ -10,13 +10,19 @@ export function drawLine(ctx: CanvasRenderingContext2D, data: IPoint[], color = 
   line<IPoint>()
     .x((d) => d.x)
     .y((d) => d.y)
+    .defined((d) => {
+      if (typeof d.defined === 'undefined') {
+        return true;
+      }
+
+      return d.defined;
+    })
     .context(ctx)(data);
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
   ctx.stroke();
   ctx.restore();
 }
-
 export interface TextStyle {
   font?: string;
   color?: string;

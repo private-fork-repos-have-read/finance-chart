@@ -49,10 +49,15 @@ export function createLinePlugin(
         const trimed = trimNulls(data);
         drawLine(
           this.pluginHost.context,
-          trimed.result.map((d, i) => ({
-            x: xScale(i + trimed.deleted),
-            y: yScale(d),
-          })),
+          trimed.result.map((d, i) => {
+            return (
+              {
+                x: xScale(i + trimed.deleted),
+                y: yScale(d),
+                defined: Object.prototype.toString.apply(d) !== '[object Null]',
+              }
+            );
+          }),
           color,
           1 * this.pluginHost.chart.options.resolution,
         );
