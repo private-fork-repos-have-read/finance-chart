@@ -13,6 +13,9 @@ import { IYAxisDetail } from '../types/chart';
 import { IDrawerOptions } from '../types/drawer';
 import { ICandleStickData } from '../types/data-structure';
 
+// @ts-ignore
+import ICONDtoc from '../images/arrow.png';
+
 export class CandleStickDrawer extends Drawer {
   public static precision = 2;
 
@@ -112,8 +115,9 @@ export class CandleStickDrawer extends Drawer {
   protected drawCandles() {
     const { xScale } = this.chart;
     const { context: ctx, yScale, range } = this;
-    const { resolution } = this.chart.options;
+    const { resolution, pickDate } = this.chart.options;
 
+    console.log(this.chart.options, 'this.chart.options')
     let visibleMaxValue: number;
     let visibleMaxValueIndex = 0;
 
@@ -152,6 +156,15 @@ export class CandleStickDrawer extends Drawer {
         ctx.fillRect(x, y, width, height);
       }
 
+      pickDate.forEach((date: string) => {
+        if (d.time === date) {
+          let imgDom = document.createElement('img');
+          imgDom.src = ICONDtoc;
+          ctx.drawImage(imgDom, (x + width / 2) - 10, yScale(minV) + 20, 20, 20)
+        }
+      })
+
+      console.log(d);
       const lineWidth = 1 * resolution;
       ctx.fillRect(x + width / 2 - lineWidth / 2, yScale(d.high), lineWidth, yScale(maxV) - yScale(d.high));
       ctx.fillRect(x + width / 2 - lineWidth / 2, yScale(minV), lineWidth, yScale(d.low) - yScale(minV));

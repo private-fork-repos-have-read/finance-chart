@@ -99,6 +99,7 @@ function createKLine() {
     lastPrice: 50.49999809265137,
     data: [],
     tradeTimes: [],
+    pickDate: ['2018-6-13 0:0:0'],
     mainDrawer: {
       constructor: CandleStickDrawer,
       options: {

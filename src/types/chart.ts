@@ -36,6 +36,8 @@ export interface IChartOptions {
    */
   data: any[];
 
+  pickDate?: any[];
+
   /**
    * 金融产品交易时间段
    */
