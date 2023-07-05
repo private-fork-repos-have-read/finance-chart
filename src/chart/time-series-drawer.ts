@@ -40,6 +40,11 @@ export const TimeSeriesBlackTheme = {
   avg: '#F89D37',
 };
 
+interface ExtraOptions {
+  timeChartLabelText: string;
+  avgChartLabelText: string;
+}
+
 /**
  * 分时图绘图器
  */
@@ -69,7 +74,7 @@ export class TimeSeriesDrawer extends Drawer {
       return lastBottomValue;
     }
   )();
-  constructor(chart: Chart, options: IDrawerOptions) {
+  constructor(chart: Chart, options: IDrawerOptions & ExtraOptions) {
     super(chart, options);
     this.theme = Object.assign({
       TimeSeries: TimeSeriesBlackTheme,
@@ -80,11 +85,11 @@ export class TimeSeriesDrawer extends Drawer {
       this.context,
       null, [
         {
-          label: '分时走势',
+          label: options.timeChartLabelText || '分时走势',
           color: this.theme.TimeSeries.price,
         },
         {
-          label: '均线',
+          label: options.avgChartLabelText || '均线',
           color: this.theme.TimeSeries.avg,
         },
       ],
