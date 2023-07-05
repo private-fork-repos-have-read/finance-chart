@@ -76,6 +76,8 @@ export class TimeSeriesDrawer extends Drawer {
   )();
   constructor(chart: Chart, options: IDrawerOptions & ExtraOptions) {
     super(chart, options);
+    console.log(options, 'options');
+    
     this.theme = Object.assign({
       TimeSeries: TimeSeriesBlackTheme,
     }, this.chart.theme);
@@ -85,11 +87,11 @@ export class TimeSeriesDrawer extends Drawer {
       this.context,
       null, [
         {
-          label: options.timeChartLabelText || '分时走势',
+          label: (options && options.timeChartLabelText) || '分时走势',
           color: this.theme.TimeSeries.price,
         },
         {
-          label: options.avgChartLabelText || '均线',
+          label: (options && options.avgChartLabelText) || '均线',
           color: this.theme.TimeSeries.avg,
         },
       ],

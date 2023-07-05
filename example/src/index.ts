@@ -47,6 +47,10 @@ function createTimeSeries() {
     ],
     mainDrawer: {
       constructor: TimeSeriesDrawer,
+      options: {
+        timeChartLabelText: '34',
+        avgChartLabelText: '43223432'
+      }
     },
     auxiliaryDrawers: [
       {
@@ -268,5 +272,5 @@ function createKLine() {
       klineChart.setData(data);
     });
 }
-// createTimeSeries();
-createKLine();
+createTimeSeries();
+// createKLine();
